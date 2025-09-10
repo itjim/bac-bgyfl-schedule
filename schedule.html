@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Bloomingdale Bears Schedule</title>
+  <!-- DataTables CSS -->
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 30px;
+      background: #f9f9f9;
+    }
+    h1 {
+      text-align: center;
+      color: #222;
+    }
+    table {
+      width: 100%;
+    }
+    .filters {
+      margin: 15px 0;
+    }
+    select, button {
+      margin-right: 10px;
+      padding: 5px 10px;
+      font-size: 16px;
+    }
+    button {
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h1>Bloomingdale Bears 2025 Schedule</h1>
+  <div class="filters">
+    <label for="teamFilter"><strong>Filter by Team:</strong></label>
+    <select id="teamFilter"></select>
+
+    <label for="weekFilter"><strong>Filter by Week:</strong></label>
+    <select id="weekFilter"></select>
+
+    <button id="resetFilters">Reset Filters</button>
+  </div>
+
+  <table id="schedule" class="display"></table>
+
+  <!-- jQuery + DataTables -->
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+
+  <script>
+    async function loadSchedule() {
+      const gamesUrl = "https://bgyfl-website-new-prod.s3-website.us-east-2.amazonaws.com/getGames?year=2025&organizationId=9";
+      const teamsUrl = "https://bgyfl-website-new-prod.s3-website.us-east-2.amazonaws.com/getTeams?year=2025&organizationId=9";
+
+      const [games, teams] = await Promise.all([
+        fetch(gamesUrl).then(r => r.json()),
+        fetch(teamsUrl).then(r => r.json())
+      ]);
+
+      // Map teamId -> teamName
+      const teamMap = {};
+      teams.forEach(t => teamMap[t.teamId] = t.teamName);
+
+      // Transform games for DataTable
+      const rows = games.map(g => ({
+        week: g.week,
+        date: g.date,
+        home: teamMap[g.homeTeamId] || g.homeTeamId,
+        away: teamMap[g.awayTeamId] || g.awayTeamId,
+        location: g.location || "",
+        result: g.result || ""
+      }));
+
+      // Initialize DataTable
+      const table = $('#schedule').DataTable({
+        data: rows,
+        columns: [
+          { title: "Week", data: "week" },
+          { title: "Date", data: "date" },
+          { title: "Home Team", data: "home" },
+          { title: "Away Team", data: "away" },
+          { title: "Location", data: "location" },
+          { title: "Result", data: "result" }
+        ],
+        order: [[0, "asc"]],
+        pageLength: 20
+      });
+
+      // === TEAM FILTER ===
+      const teamFilter = document.getElementById("teamFilter");
+      const uniqueTeams = [...new Set(rows.flatMap(r => [r.home, r.away]))].sort();
+
+      // Add "All Teams" option
+      const allTeamsOpt = document.createElement("option");
+      allTeamsOpt.value = "";
+      allTeamsOpt.textContent = "All Teams";
+      teamFilter.appendChild(allTeamsOpt);
+
+      uniqueTeams.forEach(team => {
+        const option = document.createElement("option");
+        option.value = team;
+        option.textContent = team;
+        teamFilter.appendChild(option);
+      });
+
+      // Default to Bloomingdale Bears
+      teamFilter.value = "Bloomingdale Bears";
+      table.column([2,3]).search("Bloomingdale Bears").draw();
+
+      teamFilter.addEventListener("change", () => {
+        const val = teamFilter.value;
+        if (val) {
+          table.column([2,3]).search(val).draw();
+        } else {
+          table.column([2,3]).search("").draw();
+        }
+      });
+
+      // === WEEK FILTER ===
+      const weekFilter = document.getElementById("weekFilter");
+      const weekMap = {};
+
+      rows.forEach(r => {
+        if (!weekMap[r.week] || new Date(r.date) < new Date(weekMap[r.week])) {
+          weekMap[r.week] = r.date;
+        }
+      });
+
+      // Add "All Weeks" option
+      const allWeeksOpt = document.createElement("option");
+      allWeeksOpt.value = "";
+      allWeeksOpt.textContent = "All Weeks";
+      weekFilter.appendChild(allWeeksOpt);
+
+      const sortedWeeks = Object.entries(weekMap).sort((a, b) => a[0] - b[0]);
+
+      sortedWeeks.forEach(([week, date]) => {
+        const option = document.createElement("option");
+        option.value = week;
+        const d = new Date(date);
+        const dateStr = !isNaN(d) ? `${d.getMonth()+1}/${d.getDate()}` : date;
+        option.textContent = `Week ${week} – ${dateStr}`;
+        weekFilter.appendChild(option);
+      });
+
+      // Default week = current week (based on today's date)
+      const today = new Date();
+      let currentWeek = "";
+      for (const [week, date] of sortedWeeks) {
+        const weekDate = new Date(date);
+        if (weekDate <= today) {
+          currentWeek = week;
+        }
+      }
+
+      if (currentWeek) {
+        weekFilter.value = currentWeek;
+        table.column(0).search("^" + currentWeek + "$", true, false).draw();
+      }
+
+      weekFilter.addEventListener("change", () => {
+        const val = weekFilter.value;
+        if (val) {
+          table.column(0).search("^" + val + "$", true, false).draw();
+        } else {
+          table.column(0).search("").draw();
+        }
+      });
+
+      // === RESET FILTERS ===
+      document.getElementById("resetFilters").addEventListener("click", () => {
+        teamFilter.value = "";
+        weekFilter.value = "";
+        table.column([2,3]).search("").draw();
+        table.column(0).search("").draw();
+      });
+    }
+
+    loadSchedule();
+  </script>
+</body>
+</html>
