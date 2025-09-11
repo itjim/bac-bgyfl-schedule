@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Bloomingdale Bears Schedule</title>
+  <title>BGYFL Schedule (All Teams)</title>
   <style>
     body { font-family: Arial, sans-serif; margin: 20px; }
     h1 { color: #003366; }
@@ -32,7 +32,7 @@
   </style>
 </head>
 <body>
-  <h1>Bloomingdale Bears Schedule</h1>
+  <h1>BGYFL Schedule (All Teams)</h1>
 
   <label for="weekSelect">Select Week:</label>
   <select id="weekSelect"></select>
@@ -77,13 +77,8 @@
       const tbody = document.querySelector("#scheduleTable tbody");
       tbody.innerHTML = "";
 
-      const filtered = games.filter(g =>
-        g.week === week &&
-        (
-          g.home_team?.organization_name?.includes("Bloomingdale") ||
-          g.away_team?.organization_name?.includes("Bloomingdale")
-        )
-      );
+      // ✅ Now showing ALL games (no Bloomingdale filter yet)
+      const filtered = games.filter(g => g.week === week);
 
       let currentDay = "";
       filtered.forEach(game => {
