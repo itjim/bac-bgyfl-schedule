@@ -14,6 +14,24 @@
     #filters label { margin-right: 10px; }
     #filters select { margin-right: 20px; padding: 5px; }
     #resetBtn { padding: 6px 12px; background: #003366; color: white; border: none; cursor: pointer; }
+
+    /* Floating Back to Top Button */
+    #backToTop {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      padding: 10px 15px;
+      background: #003366;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      display: none; /* Hidden until scroll */
+      z-index: 1000;
+    }
+    #backToTop:hover {
+      background: #0055aa;
+    }
   </style>
 </head>
 <body>
@@ -56,6 +74,9 @@
     <tbody></tbody>
   </table>
 
+  <!-- Back to Top Button -->
+  <button id="backToTop">↑ Top</button>
+
   <script>
     const gamesEndpoint = "https://slhjx7xcc1.execute-api.us-east-2.amazonaws.com/prod/api/getGames?year=2025&organizationId=9";
     let allGames = [];
@@ -83,18 +104,23 @@
       const tbody = document.querySelector("#scheduleTable tbody");
       tbody.innerHTML = "";
       let currentDay = "";
+      let currentWeek = null;
 
       games.forEach(game => {
         const gameDate = game.game_date;
         const dayName = getDayOfWeek(gameDate);
 
-        if (dayName !== currentDay) {
+        if (dayName !== currentDay || game.week !== currentWeek) {
           currentDay = dayName;
+          currentWeek = game.week;
           const row = document.createElement("tr");
           row.classList.add("day-separator");
           const cell = document.createElement("td");
           cell.colSpan = 8;
-          cell.textContent = `${dayName} (${gameDate})`;
+          // Format MM/DD
+          const [y, m, d] = gameDate.split('-').map(Number);
+          const formattedDate = `${String(m).padStart(2,'0')}/${String(d).padStart(2,'0')}`;
+          cell.textContent = `Week ${game.week} – ${dayName} (${formattedDate})`;
           row.appendChild(cell);
           tbody.appendChild(row);
         }
@@ -183,6 +209,15 @@
 
       applyFilters();
     }
+
+    // Back to Top button logic
+    const backToTop = document.getElementById("backToTop");
+    window.addEventListener("scroll", () => {
+      backToTop.style.display = window.scrollY > 300 ? "block" : "none";
+    });
+    backToTop.addEventListener("click", () => {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
 
     init();
   </script>
