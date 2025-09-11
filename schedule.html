@@ -33,6 +33,7 @@
         <th>Home Team</th>
         <th>Away Team</th>
         <th>Field</th>
+        <th>Score</th>
       </tr>
     </thead>
     <tbody></tbody>
@@ -114,12 +115,19 @@
       filtered.forEach(g => {
         const tr = document.createElement("tr");
         const date = new Date(g.game_date).toLocaleDateString();
+
+        let scoreDisplay = "";
+        if (g.home_score !== null && g.away_score !== null) {
+          scoreDisplay = `${g.home_score} - ${g.away_score}`;
+        }
+
         tr.innerHTML = `
           <td>${date}</td>
-          <td>${g.game_time}</td>
+          <td>${g.game_time || ""}</td>
           <td class="${bloomTeams.includes(g.home_team.name) ? 'bloomingdale' : ''}">${g.home_team.name}</td>
           <td class="${bloomTeams.includes(g.away_team.name) ? 'bloomingdale' : ''}">${g.away_team.name}</td>
           <td>${g.field_name || ''}</td>
+          <td>${scoreDisplay}</td>
         `;
         tbody.appendChild(tr);
       });
