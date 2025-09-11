@@ -8,11 +8,13 @@
     body { font-family: Arial, sans-serif; margin: 20px; }
     h1 { color: #003366; margin-bottom: 12px; }
     .controls { margin: 8px 0 16px; }
-    select { padding: 6px 8px; font-size: 14px; }
+    select { padding: 6px 8px; font-size: 14px; margin-right: 8px; }
     table { width: 100%; border-collapse: collapse; }
     th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
     th { background: #003366; color: #fff; }
     .muted { color: #666; }
+    .team-cell { display: flex; align-items: center; gap: 6px; justify-content: center; }
+    .team-cell img { width: 20px; height: 20px; object-fit: contain; }
   </style>
 </head>
 <body>
@@ -21,6 +23,9 @@
   <div class="controls">
     <label for="weekSelect">Select Week:&nbsp;</label>
     <select id="weekSelect"></select>
+
+    <label for="townSelect">Select Town:&nbsp;</label>
+    <select id="townSelect"></select>
   </div>
 
   <table id="scheduleTable">
@@ -41,33 +46,11 @@
     // ---- CONFIG -------------------------------------------------------------
     const PROXY = "https://taupe-meringue-d27509.netlify.app/.netlify/functions/proxy?url=";
     const API_ROOT = "https://slhjx7xcc1.execute-api.us-east-2.amazonaws.com/prod/api";
+    const BGYFL_HOME = "http://bgyfl-website-new-prod.s3-website.us-east-2.amazonaws.com/";
     const YEAR = 2025;
-
-    // If you want a specific range, adjust here (BGYFL typically ~10–12 weeks)
     const WEEK_RANGE = Array.from({ length: 12 }, (_, i) => i + 1);
 
-    // Optional: Town -> Mascot to produce "Elmhurst Eagles", etc.
-    const MASCOT_MAP = {
-      "Arlington Heights": "Cowboys",
-      "Bloomingdale": "Bears",
-      "Carol Stream": "Panthers",
-      "Downers Grove": "Panthers",
-      "Elmhurst": "Eagles",
-      "Glen Ellyn": "Eagles",
-      "Hinsdale": "Falcons",
-      "Lemont": "Hornets",
-      "Lombard": "Falcons",
-      "Lyons Township": "Tigers",
-      "Midwest": "Raiders",
-      "Naperville": "Saints",
-      "Oak Park River Forest": "Huskies",
-      "Oswego": "Panthers",
-      "Palatine": "Panthers",
-      "Park Ridge": "Falcons",
-      "Plainfield": "Junior Cats",
-      "Tri City": "Chargers",
-      "Wheaton": "Rams"
-    };
+    let ORGS = []; // populated dynamically: [{ id, name, logo }, ...]
 
     // ---- HELPERS ------------------------------------------------------------
     async function api(pathWithQuery) {
@@ -77,57 +60,82 @@
       return res.json();
     }
 
-    // Format "Town + Mascot" if org name is available (fallback to team name if not)
-    function prettyTeamName(game, side /* 'home'|'away' */) {
-      // Try org/town name (e.g., "Elmhurst")
-      const orgName =
-        game[`${side}_org_name`] ||
-        game[`${side}_organization_name`] ||
-        game[`${side}_organization`] ||
-        null;
+    async function fetchHTML(url) {
+      const proxied = PROXY + encodeURIComponent(url);
+      const res = await fetch(proxied);
+      return res.text();
+    }
 
-      // Try full team name if provided (e.g., "Bloomingdale Blue")
-      const team =
-        game[`${side}_team`] ||
-        game[`${side}Team`] ||
-        null;
+    async function loadOrganizations() {
+      const html = await fetchHTML(BGYFL_HOME);
+      const div = document.createElement("div");
+      div.innerHTML = html;
 
-      if (orgName) {
-        const mascot = MASCOT_MAP[orgName.trim()] || null;
-        return mascot ? `${orgName} ${mascot}` : orgName;
-      }
+      ORGS = [];
+      div.querySelectorAll("a").forEach(a => {
+        const href = a.getAttribute("href");
+        if (href && href.includes("organizationId")) {
+          const idMatch = href.match(/organizationId=(\d+)/);
+          if (idMatch) {
+            const id = idMatch[1];
+            const name = a.innerText.trim().split("\n")[0]; // town name
+            const img = a.querySelector("img")?.getAttribute("src") || "";
+            ORGS.push({ id, name, logo: img });
+          }
+        }
+      });
 
-      // If we don't have an org/town, use the team string (often present on org-scoped calls)
-      return team || "TBD";
+      ORGS.sort((a, b) => a.name.localeCompare(b.name));
+
+      // Build dropdown
+      const sel = document.getElementById("townSelect");
+      sel.innerHTML = "";
+      const allOpt = document.createElement("option");
+      allOpt.value = "all";
+      allOpt.textContent = "All Towns";
+      sel.appendChild(allOpt);
+
+      ORGS.forEach(o => {
+        const opt = document.createElement("option");
+        opt.value = o.id;
+        opt.textContent = o.name;
+        sel.appendChild(opt);
+      });
+    }
+
+    function prettyTeam(game, side) {
+      const orgName = game[`${side}_org_name`] || game[`${side}_organization_name`] || game[`${side}_organization`] || "";
+      const org = ORGS.find(o => o.name.includes(orgName)) || null;
+      const display = orgName || "TBD";
+      const logo = org?.logo || "";
+
+      return `
+        <div class="team-cell">
+          ${logo ? `<img src="${logo}" alt="${display} logo">` : ""}
+          <span>${display}</span>
+        </div>
+      `;
     }
 
     function prettyField(game) {
-      return (
-        game.field_name ||
-        game.field ||
-        game.fieldName ||
-        ""
-      );
+      return game.field_name || game.field || "";
     }
 
     function prettyScore(game) {
-      const hs = (game.home_score ?? game.homeScore);
-      const as = (game.away_score ?? game.awayScore);
-      // Show blank if scores are null/undefined (not played yet)
+      const hs = game.home_score ?? null;
+      const as = game.away_score ?? null;
       if (hs == null || as == null) return "";
       return `${hs} - ${as}`;
     }
 
     function toDateObj(game) {
-      // Combine date + time into a sort-friendly Date
-      // Example: "2025-08-30" + "10:00:00" => local Date object
       const d = game.game_date || game.date;
-      const t = (game.game_time || game.time || "00:00:00").slice(0,8);
+      const t = (game.game_time || "00:00:00").slice(0,8);
       return new Date(`${d}T${t}`);
     }
 
     // ---- UI RENDERING -------------------------------------------------------
-    function renderWeekOptions(firstWeekWithData) {
+    function renderWeekOptions(defaultWeek) {
       const sel = document.getElementById("weekSelect");
       sel.innerHTML = "";
       WEEK_RANGE.forEach(w => {
@@ -136,8 +144,7 @@
         opt.textContent = `Week ${w}`;
         sel.appendChild(opt);
       });
-      // Default: the first week that returned data; otherwise week 1
-      sel.value = String(firstWeekWithData || 1);
+      sel.value = String(defaultWeek || 1);
     }
 
     function renderGames(games) {
@@ -149,25 +156,23 @@
         const td = document.createElement("td");
         td.colSpan = 6;
         td.className = "muted";
-        td.textContent = "No games found for this week.";
+        td.textContent = "No games found.";
         tr.appendChild(td);
         body.appendChild(tr);
         return;
       }
 
-      // Sort by date+time
       games.sort((a, b) => toDateObj(a) - toDateObj(b));
 
       for (const g of games) {
-        const tr = document.createElement("tr");
         const dateStr = g.game_date || g.date || "";
-        const timeStr = (g.game_time || g.time || "").slice(0,8);
-
+        const timeStr = (g.game_time || "").slice(0,8);
+        const tr = document.createElement("tr");
         tr.innerHTML = `
           <td>${dateStr}</td>
           <td>${timeStr}</td>
-          <td>${prettyTeamName(g, "home")}</td>
-          <td>${prettyTeamName(g, "away")}</td>
+          <td>${prettyTeam(g, "home")}</td>
+          <td>${prettyTeam(g, "away")}</td>
           <td>${prettyField(g)}</td>
           <td>${prettyScore(g)}</td>
         `;
@@ -175,54 +180,32 @@
       }
     }
 
-    // ---- MAIN FLOW ----------------------------------------------------------
-    async function fetchWeekGames(week) {
-      // For ALL BGYFL you MUST include a filter: week is perfect for that.
-      // Endpoint: /getGames?year=2025&week={n}
-      const data = await api(`/getGames?year=${YEAR}&week=${week}`);
+    // ---- MAIN ---------------------------------------------------------------
+    async function fetchWeekGames(week, orgId = null) {
+      let url = `/getGames?year=${YEAR}&week=${week}`;
+      if (orgId && orgId !== "all") url += `&organizationId=${orgId}`;
+      const data = await api(url);
       return data.games || [];
     }
 
     async function init() {
-      let firstWeekWithData = null;
-
-      // Build week dropdown first (1..N)
+      await loadOrganizations();
       renderWeekOptions(1);
 
-      // Prefetch the *first* week that actually has data (so the page isn't empty)
-      for (const w of WEEK_RANGE) {
-        try {
-          const g = await fetchWeekGames(w);
-          if (g.length > 0) {
-            firstWeekWithData = w;
-            renderWeekOptions(firstWeekWithData);
-            renderGames(g);
-            break;
-          }
-        } catch (e) {
-          // ignore individual week errors and continue
-        }
-      }
+      const weekSel = document.getElementById("weekSelect");
+      const townSel = document.getElementById("townSelect");
 
-      // Hook up change handler
-      document.getElementById("weekSelect").addEventListener("change", async (e) => {
-        const w = Number(e.target.value);
+      async function update() {
+        const w = Number(weekSel.value);
+        const orgId = townSel.value;
         try {
-          const g = await fetchWeekGames(w);
+          const g = await fetchWeekGames(w, orgId);
           renderGames(g);
-        } catch (err) {
+        } catch (e) {
+          console.error(e);
           renderGames([]);
-          console.error(err);
         }
-      });
-
-      // If none had data (unlikely), still show empty state for week 1
-      if (!firstWeekWithData) {
-        renderGames([]);
       }
-    }
 
-    init();
-  </script>
-</body>
-</html>
+      weekSel.addEventListener("change", update);
+      townS
