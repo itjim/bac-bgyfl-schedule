@@ -39,7 +39,7 @@
     const proxyUrl = "https://taupe-meringue-d27509.netlify.app/.netlify/functions/proxy?url=";
     const gamesEndpoint = "https://slhjx7xcc1.execute-api.us-east-2.amazonaws.com/prod/api/getGames?year=2025&organizationId=9";
 
-    // Temporary logo map (we’ll extend later from BGYFL site)
+    // Temporary logos (extend later dynamically from BGYFL if needed)
     const logos = {
       "Bloomingdale": "http://bgyfl-website-new-prod.s3-website.us-east-2.amazonaws.com/assets/bloomingdale.png",
       "Naperville": "http://bgyfl-website-new-prod.s3-website.us-east-2.amazonaws.com/assets/naperville.png",
@@ -61,8 +61,11 @@
       const tbody = document.querySelector("#scheduleTable tbody");
       tbody.innerHTML = "";
 
-      const filtered = games.filter(g => g.week === week && 
-        (g.home_org?.includes("Bloomingdale") || g.away_org?.includes("Bloomingdale"))
+      // Show Bloomingdale games only
+      const filtered = games.filter(g =>
+        g.week === week &&
+        ((g.home_org && g.home_org.includes("Bloomingdale")) ||
+         (g.away_org && g.away_org.includes("Bloomingdale")))
       );
 
       let currentDay = "";
@@ -83,13 +86,13 @@
 
         const row = document.createElement("tr");
         row.innerHTML = `
-          <td>${gameDate}</td>
-          <td>${dayName}</td>
-          <td>${game.game_time}</td>
-          <td class="team-cell">${renderTeam(game.home_org)}</td>
-          <td class="team-cell">${renderTeam(game.away_org)}</td>
+          <td>${gameDate || ""}</td>
+          <td>${dayName || ""}</td>
+          <td>${game.game_time || ""}</td>
+          <td class="team-cell">${renderTeam(game.home_org || "TBD")}</td>
+          <td class="team-cell">${renderTeam(game.away_org || "TBD")}</td>
           <td>${game.field || ""}</td>
-          <td>${game.home_score} - ${game.away_score}</td>
+          <td>${(game.home_score ?? "0")} - ${(game.away_score ?? "0")}</td>
         `;
         tbody.appendChild(row);
       });
