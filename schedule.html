@@ -6,21 +6,24 @@
   <style>
     body { font-family: Arial, sans-serif; margin: 20px; }
     h1 { color: #003366; }
-    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    select, button { margin: 5px; padding: 5px; }
+    table { border-collapse: collapse; width: 100%; margin-top: 20px; }
     th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
-    th { background-color: #003366; color: white; }
-    select, button { margin-right: 10px; padding: 5px; }
+    th { background: #003366; color: white; }
   </style>
 </head>
 <body>
   <h1>Bloomingdale Bears Schedule</h1>
 
-  <label for="week">Select Week:</label>
-  <select id="week"></select>
+  <label for="weekSelect">Select Week:</label>
+  <select id="weekSelect"></select>
 
-  <button id="showAll">Show All BGYFL Games</button>
+  <label for="teamSelect">Select Team:</label>
+  <select id="teamSelect"></select>
 
-  <table id="schedule">
+  <button id="toggleBloomingdale">Show Bloomingdale Only</button>
+
+  <table id="scheduleTable">
     <thead>
       <tr>
         <th>Date</th>
@@ -37,69 +40,122 @@
   <script>
     const API_BASE = "https://taupe-meringue-d27509.netlify.app/.netlify/functions/proxy?url=";
     const GAMES_URL = "https://slhjx7xcc1.execute-api.us-east-2.amazonaws.com/prod/api/getGames";
-    const TEAMS_URL = "https://slhjx7xcc1.execute-api.us-east-2.amazonaws.com/prod/api/getTeams?year=2025&organizationId=9";
+    // ✅ Pull ALL BGYFL teams, not just Bloomingdale
+    const TEAMS_URL = "https://slhjx7xcc1.execute-api.us-east-2.amazonaws.com/prod/api/getTeams?year=2025";
 
     let teamsMap = {};
+    let games = [];
+    let bloomingtonOnly = true;
 
     async function fetchTeams() {
       const res = await fetch(API_BASE + encodeURIComponent(TEAMS_URL));
       const data = await res.json();
       data.teams.forEach(t => {
-        teamsMap[t.id] = t.name;
+        teamsMap[t.id] = `${t.division_name} - ${t.name}`;
       });
+
+      populateTeamDropdown(data.teams);
     }
 
-    async function fetchGames(week) {
-      const url = `${GAMES_URL}?year=2025&week=${week}`;
-      const res = await fetch(API_BASE + encodeURIComponent(url));
-      return await res.json();
+    async function fetchGames() {
+      const res = await fetch(API_BASE + encodeURIComponent(`${GAMES_URL}?year=2025&organizationId=9`));
+      const data = await res.json();
+      games = data.games || [];
+      renderSchedule();
     }
 
-    function renderGames(games) {
-      const tbody = document.querySelector("#schedule tbody");
+    function populateWeekDropdown() {
+      const weekSelect = document.getElementById("weekSelect");
+      weekSelect.innerHTML = "";
+      const weeks = [...new Set(games.map(g => g.week))].sort((a, b) => a - b);
+
+      weeks.forEach(week => {
+        const g = games.find(x => x.week === week);
+        let label = `Week ${week}`;
+        if (g?.game_date) {
+          label += ` – ${g.game_date}`;
+        }
+        const opt = document.createElement("option");
+        opt.value = week;
+        opt.textContent = label;
+        weekSelect.appendChild(opt);
+      });
+
+      // Default to current week (or first if not available)
+      weekSelect.value = weeks[0];
+      weekSelect.addEventListener("change", renderSchedule);
+    }
+
+    function populateTeamDropdown(allTeams) {
+      const teamSelect = document.getElementById("teamSelect");
+      teamSelect.innerHTML = "";
+
+      // Only Bloomingdale teams for dropdown
+      const bloomTeams = allTeams.filter(t => t.name.includes("Bloomingdale"));
+      const allOpt = document.createElement("option");
+      allOpt.value = "ALL";
+      allOpt.textContent = "All Bloomingdale Teams";
+      teamSelect.appendChild(allOpt);
+
+      bloomTeams.forEach(team => {
+        const opt = document.createElement("option");
+        opt.value = team.id;
+        opt.textContent = `${team.division_name} - ${team.name}`;
+        teamSelect.appendChild(opt);
+      });
+
+      teamSelect.value = "ALL";
+      teamSelect.addEventListener("change", renderSchedule);
+    }
+
+    function renderSchedule() {
+      const week = parseInt(document.getElementById("weekSelect").value, 10);
+      const teamFilter = document.getElementById("teamSelect").value;
+      const tbody = document.querySelector("#scheduleTable tbody");
       tbody.innerHTML = "";
 
-      games.forEach(game => {
-        const row = document.createElement("tr");
-        row.innerHTML = `
-          <td>${game.game_date || ""}</td>
-          <td>${game.game_time || ""}</td>
-          <td>${teamsMap[game.home_team_id] || "TBD"}</td>
-          <td>${teamsMap[game.away_team_id] || "TBD"}</td>
-          <td>${game.field || ""}</td>
-          <td>${game.home_score ?? 0} - ${game.away_score ?? 0}</td>
+      let filtered = games.filter(g => g.week === week);
+
+      if (bloomingtonOnly) {
+        filtered = filtered.filter(g =>
+          teamsMap[g.home_team_id]?.includes("Bloomingdale") ||
+          teamsMap[g.away_team_id]?.includes("Bloomingdale")
+        );
+      }
+
+      if (teamFilter !== "ALL") {
+        filtered = filtered.filter(g =>
+          g.home_team_id == teamFilter || g.away_team_id == teamFilter
+        );
+      }
+
+      filtered.forEach(g => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${g.game_date || ""}</td>
+          <td>${g.game_time || ""}</td>
+          <td>${teamsMap[g.home_team_id] || "TBD"}</td>
+          <td>${teamsMap[g.away_team_id] || "TBD"}</td>
+          <td>${g.field || ""}</td>
+          <td>${g.home_score ?? 0} - ${g.away_score ?? 0}</td>
         `;
-        tbody.appendChild(row);
+        tbody.appendChild(tr);
       });
     }
+
+    document.getElementById("toggleBloomingdale").addEventListener("click", () => {
+      bloomingtonOnly = !bloomingtonOnly;
+      document.getElementById("toggleBloomingdale").textContent = bloomingtonOnly
+        ? "Show All BGYFL Games"
+        : "Show Bloomingdale Only";
+      renderSchedule();
+    });
 
     async function init() {
       await fetchTeams();
-
-      // Populate week dropdown (1–10 for now)
-      const weekSelect = document.getElementById("week");
-      for (let i = 1; i <= 10; i++) {
-        const opt = document.createElement("option");
-        opt.value = i;
-        opt.textContent = `Week ${i}`;
-        weekSelect.appendChild(opt);
-      }
-
-      // Default to week 1
-      loadWeek(1);
-
-      weekSelect.addEventListener("change", e => {
-        loadWeek(e.target.value);
-      });
-
-      document.getElementById("showAll").addEventListener("click", () => {
-        loadWeek(weekSelect.value);
-      });
-    }
-
-    async function loadWeek(week) {
-      const data = await fetchGames(week);
-      renderGames(data.games || []);
+      await fetchGames();
+      populateWeekDropdown();
+      renderSchedule();
     }
 
     init();
