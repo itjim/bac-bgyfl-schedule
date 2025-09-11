@@ -37,10 +37,13 @@
 
   <script>
     const proxyUrl = "https://taupe-meringue-d27509.netlify.app/.netlify/functions/proxy?url=";
-    const gamesEndpoint = "https://slhjx7xcc1.execute-api.us-east-2.amazonaws.com/prod/api/getGames?year=2025&organizationId=9";
+    const gamesEndpoint = "https://slhjx7xcc1.execute-api.us-east-2.amazonaws.com/prod/api/getGames?year=2025";
 
+    // Temporary logos (extend later dynamically from BGYFL site if needed)
     const logos = {
-      "Bloomingdale": "http://bgyfl-website-new-prod.s3-website.us-east-2.amazonaws.com/assets/bloomingdale.png"
+      "Bloomingdale": "http://bgyfl-website-new-prod.s3-website.us-east-2.amazonaws.com/assets/bloomingdale.png",
+      "Naperville": "http://bgyfl-website-new-prod.s3-website.us-east-2.amazonaws.com/assets/naperville.png",
+      "Elmhurst": "http://bgyfl-website-new-prod.s3-website.us-east-2.amazonaws.com/assets/elmhurst.png"
     };
 
     async function fetchData() {
@@ -58,10 +61,13 @@
       const tbody = document.querySelector("#scheduleTable tbody");
       tbody.innerHTML = "";
 
+      // Filter only Bloomingdale games
       const filtered = games.filter(g =>
         g.week === week &&
-        ((g.home_organization && g.home_organization.includes("Bloomingdale")) ||
-         (g.away_organization && g.away_organization.includes("Bloomingdale")))
+        (
+          g.home_team?.organization_name?.includes("Bloomingdale") ||
+          g.away_team?.organization_name?.includes("Bloomingdale")
+        )
       );
 
       let currentDay = "";
@@ -69,6 +75,7 @@
         const gameDate = game.game_date;
         const dayName = getDayOfWeek(gameDate);
 
+        // Insert a day separator row
         if (dayName !== currentDay) {
           currentDay = dayName;
           const row = document.createElement("tr");
@@ -85,26 +92,27 @@
           <td>${gameDate || ""}</td>
           <td>${dayName || ""}</td>
           <td>${game.game_time || ""}</td>
-          <td class="team-cell">${renderTeam(game.home_organization || "TBD")}</td>
-          <td class="team-cell">${renderTeam(game.away_organization || "TBD")}</td>
-          <td>${game.field_name || ""}</td>
+          <td class="team-cell">${renderTeam(game.home_team?.organization_name, game.home_team?.team_name)}</td>
+          <td class="team-cell">${renderTeam(game.away_team?.organization_name, game.away_team?.team_name)}</td>
+          <td>${game.field?.field_name || ""}</td>
           <td>${(game.home_score ?? "0")} - ${(game.away_score ?? "0")}</td>
         `;
         tbody.appendChild(row);
       });
     }
 
-    function renderTeam(orgName) {
+    function renderTeam(orgName, teamName) {
       if (!orgName) return "TBD";
+      const displayName = `${orgName} ${teamName || ""}`;
       const town = orgName.split(" ")[0];
       const logo = logos[town] || "";
-      return logo ? `<img src="${logo}" alt="${town} logo"/> ${orgName}` : orgName;
+      return logo ? `<img src="${logo}" alt="${town} logo"/> ${displayName}` : displayName;
     }
 
     async function init() {
       const games = await fetchData();
       const weekSelect = document.getElementById("weekSelect");
-      const weeks = [...new Set(games.map(g => g.week))].sort((a,b) => a-b);
+      const weeks = [...new Set(games.map(g => g.week))].sort((a, b) => a - b);
 
       weeks.forEach(w => {
         const opt = document.createElement("option");
