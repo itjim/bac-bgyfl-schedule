@@ -81,7 +81,7 @@
           <td>${game.game_time}</td>
           <td>${game.home_organization_name} ${game.home_team_name}</td>
           <td>${game.away_organization_name} ${game.away_team_name}</td>
-          <td>${game.field_name || ""}</td>
+          <td>${game.field?.field_name || ""}</td>
           <td>${game.home_score} - ${game.away_score}</td>
         `;
         tbody.appendChild(row);
