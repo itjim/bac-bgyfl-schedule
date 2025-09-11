@@ -14,7 +14,6 @@
     #filters label { margin-right: 10px; }
     #filters select { margin-right: 20px; padding: 5px; }
     #resetBtn { padding: 6px 12px; background: #003366; color: white; border: none; cursor: pointer; }
-    .bye-row { background-color: rgba(65, 105, 225, 0.25); font-weight: bold; }
   </style>
 </head>
 <body>
@@ -89,7 +88,6 @@
         const gameDate = game.game_date;
         const dayName = getDayOfWeek(gameDate);
 
-        // Insert day separator
         if (dayName !== currentDay) {
           currentDay = dayName;
           const row = document.createElement("tr");
@@ -101,21 +99,16 @@
           tbody.appendChild(row);
         }
 
-        // Check if it's a BYE
-        const isBye = !game.away_team_name && game.home_organization_name === "Bloomingdale";
-
         const row = document.createElement("tr");
-        if (isBye) row.classList.add("bye-row");
-
         row.innerHTML = `
           <td>${game.status ? game.status.charAt(0).toUpperCase() + game.status.slice(1) : "Unconfirmed"}</td>
           <td>${gameDate}</td>
           <td>${dayName}</td>
-          <td>${game.game_time || ""}</td>
+          <td>${game.game_time}</td>
           <td>${game.home_team_name || ""}<br><small>${game.division_name || ""}</small></td>
-          <td>${isBye ? "BYE" : (game.away_team_name || "")}<br><small>${isBye ? "" : (game.division_name || "")}</small></td>
+          <td>${game.away_team_name || ""}<br><small>${game.division_name || ""}</small></td>
           <td>${game.field_name || ""}</td>
-          <td>${isBye ? "" : ((game.home_score ?? 0) + " - " + (game.away_score ?? 0))}</td>
+          <td>${(game.home_score ?? 0)} - ${(game.away_score ?? 0)}</td>
         `;
         tbody.appendChild(row);
       });
