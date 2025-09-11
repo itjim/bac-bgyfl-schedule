@@ -53,9 +53,13 @@
       const tbody = document.querySelector("#scheduleTable tbody");
       tbody.innerHTML = "";
 
+      // ✅ filter only Bloomingdale games
       const filtered = games.filter(g =>
         g.week === week &&
-        (g.home_organization_name === "Bloomingdale" || g.away_organization_name === "Bloomingdale")
+        (
+          g.home_team?.organization_name === "Bloomingdale" ||
+          g.away_team?.organization_name === "Bloomingdale"
+        )
       );
 
       let currentDay = "";
@@ -79,10 +83,10 @@
           <td>${gameDate}</td>
           <td>${dayName}</td>
           <td>${game.game_time}</td>
-          <td>${game.home_organization_name} ${game.home_team_name}</td>
-          <td>${game.away_organization_name} ${game.away_team_name}</td>
+          <td>${game.home_team?.organization_name || ""} ${game.home_team?.team_name || ""}</td>
+          <td>${game.away_team?.organization_name || ""} ${game.away_team?.team_name || ""}</td>
           <td>${game.field?.field_name || ""}</td>
-          <td>${game.home_score} - ${game.away_score}</td>
+          <td>${(game.home_score ?? 0)} - ${(game.away_score ?? 0)}</td>
         `;
         tbody.appendChild(row);
       });
