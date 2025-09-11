@@ -12,6 +12,8 @@
     .day-separator { background-color: #f2f2f2; font-weight: bold; text-align: left; }
     .team-cell { display: flex; align-items: center; gap: 8px; justify-content: center; }
     .team-cell img { width: 24px; height: 24px; }
+    #debugPanel { margin-top: 20px; border: 1px solid #ccc; padding: 10px; background: #f9f9f9; }
+    #debugPanel pre { max-height: 400px; overflow-y: auto; white-space: pre-wrap; word-wrap: break-word; }
   </style>
 </head>
 <body>
@@ -35,9 +37,14 @@
     <tbody></tbody>
   </table>
 
+  <!-- Debugging panel -->
+  <div id="debugPanel">
+    <h3>Debug Output (Raw JSON)</h3>
+    <pre id="debugOutput">Loading...</pre>
+  </div>
+
   <script>
     const proxyUrl = "https://taupe-meringue-d27509.netlify.app/.netlify/functions/proxy?url=";
-    // ✅ Put back the orgId (Bloomingdale = 9)
     const gamesEndpoint = "https://slhjx7xcc1.execute-api.us-east-2.amazonaws.com/prod/api/getGames?year=2025&organizationId=9";
 
     const logos = {
@@ -48,6 +55,10 @@
       const response = await fetch(proxyUrl + encodeURIComponent(gamesEndpoint));
       const data = await response.json();
       console.log("API payload:", data);
+
+      // Show the raw JSON in debug panel
+      document.getElementById("debugOutput").textContent = JSON.stringify(data, null, 2);
+
       return data.games || [];
     }
 
@@ -104,6 +115,7 @@
     async function init() {
       const games = await fetchData();
       console.log("Games parsed:", games);
+
       const weekSelect = document.getElementById("weekSelect");
       const weeks = [...new Set(games.map(g => g.week))].sort((a, b) => a - b);
 
