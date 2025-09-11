@@ -37,28 +37,18 @@
 
   <script>
     const proxyUrl = "https://taupe-meringue-d27509.netlify.app/.netlify/functions/proxy?url=";
-    const gamesEndpoint = "https://slhjx7xcc1.execute-api.us-east-2.amazonaws.com/prod/api/getGames?year=2025";
+    // ✅ Put back the orgId (Bloomingdale = 9)
+    const gamesEndpoint = "https://slhjx7xcc1.execute-api.us-east-2.amazonaws.com/prod/api/getGames?year=2025&organizationId=9";
 
     const logos = {
-      "Bloomingdale": "http://bgyfl-website-new-prod.s3-website.us-east-2.amazonaws.com/assets/bloomingdale.png",
-      "Naperville": "http://bgyfl-website-new-prod.s3-website.us-east-2.amazonaws.com/assets/naperville.png",
-      "Elmhurst": "http://bgyfl-website-new-prod.s3-website.us-east-2.amazonaws.com/assets/elmhurst.png"
+      "Bloomingdale": "http://bgyfl-website-new-prod.s3-website.us-east-2.amazonaws.com/assets/bloomingdale.png"
     };
 
     async function fetchData() {
       const response = await fetch(proxyUrl + encodeURIComponent(gamesEndpoint));
       const data = await response.json();
-
-      console.log("API payload:", data); // 🔍 see structure in browser devtools
-
-      // Try different common wrappers
-      if (Array.isArray(data)) return data;
-      if (data.games) return data.games;
-      if (data.body) {
-        try { return JSON.parse(data.body).games || []; }
-        catch { return []; }
-      }
-      return [];
+      console.log("API payload:", data);
+      return data.games || [];
     }
 
     function getDayOfWeek(dateStr) {
@@ -70,13 +60,7 @@
       const tbody = document.querySelector("#scheduleTable tbody");
       tbody.innerHTML = "";
 
-      const filtered = games.filter(g =>
-        g.week === week &&
-        (
-          g.home_team?.organization_name?.includes("Bloomingdale") ||
-          g.away_team?.organization_name?.includes("Bloomingdale")
-        )
-      );
+      const filtered = games.filter(g => g.week === week);
 
       let currentDay = "";
       filtered.forEach(game => {
@@ -119,8 +103,7 @@
 
     async function init() {
       const games = await fetchData();
-      console.log("Games parsed:", games); // 🔍 debug check
-
+      console.log("Games parsed:", games);
       const weekSelect = document.getElementById("weekSelect");
       const weeks = [...new Set(games.map(g => g.week))].sort((a, b) => a - b);
 
