@@ -7,66 +7,64 @@
     body { font-family: Arial, sans-serif; margin: 20px; }
     h1 { color: #003366; }
     table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-    th, td { border: 1px solid #003366; padding: 6px; text-align: center; }
-    th { background-color: #003366; color: white; }
+    th, td { border: 1px solid #003366; padding: 8px; text-align: center; }
+    th { background-color: #003366; color: white; position: sticky; top: 0; z-index: 2; }
     .day-separator { background-color: #f2f2f2; font-weight: bold; text-align: left; }
-    #filters { margin-bottom: 15px; }
-    #filters label { margin-right: 10px; }
-    #filters select { margin-right: 20px; padding: 5px; }
-    #resetBtn { padding: 6px 12px; background: #003366; color: white; border: none; cursor: pointer; }
 
-    /* Floating Back to Top Button */
+    select { margin: 10px; padding: 5px; }
+
+    /* Floating Back to Top button */
     #backToTop {
+      display: none;
       position: fixed;
       bottom: 20px;
       right: 20px;
-      padding: 10px 15px;
-      background: #003366;
+      padding: 10px 18px;
+      font-size: 14px;
+      background-color: #003366;
       color: white;
       border: none;
-      border-radius: 5px;
+      border-radius: 6px;
       cursor: pointer;
-      display: none; /* Hidden until scroll */
       z-index: 1000;
+      box-shadow: 0px 2px 6px rgba(0,0,0,0.2);
     }
     #backToTop:hover {
-      background: #0055aa;
+      background-color: #00509e;
     }
   </style>
 </head>
 <body>
   <h1>Bloomingdale Bears Schedule</h1>
 
-  <div id="filters">
-    <label for="weekSelect">Filter by Week:</label>
-    <select id="weekSelect">
-      <option value="all">All Weeks</option>
-    </select>
+  <label for="weekSelect">Filter by Week:</label>
+  <select id="weekSelect">
+    <option value="all">All Weeks</option>
+  </select>
 
-    <label for="homeAwaySelect">Filter by Location:</label>
-    <select id="homeAwaySelect">
-      <option value="all">All Games</option>
-      <option value="home">Home</option>
-      <option value="away">Away</option>
-    </select>
+  <label for="locationSelect">Filter by Location:</label>
+  <select id="locationSelect">
+    <option value="all">All Games</option>
+    <option value="home">Home Games</option>
+    <option value="away">Away Games</option>
+  </select>
 
-    <label for="divisionSelect">Filter by Division:</label>
-    <select id="divisionSelect">
-      <option value="all">All Divisions</option>
-    </select>
+  <label for="divisionSelect">Filter by Division:</label>
+  <select id="divisionSelect">
+    <option value="all">All Divisions</option>
+  </select>
 
-    <button id="resetBtn">Reset Filters</button>
-  </div>
+  <button id="resetFilters">Reset View</button>
 
   <table id="scheduleTable">
     <thead>
       <tr>
         <th>Status</th>
-        <th>Date</th>
         <th>Day</th>
         <th>Time</th>
         <th>Home Team</th>
         <th>Away Team</th>
+        <th>Division</th>
         <th>Field</th>
         <th>Score</th>
       </tr>
@@ -74,66 +72,61 @@
     <tbody></tbody>
   </table>
 
-  <!-- Back to Top Button -->
-  <button id="backToTop">↑ Top</button>
+  <!-- Floating Back to Top -->
+  <button id="backToTop" tabindex="-1">Back to Top</button>
 
   <script>
+    const proxyUrl = "https://taupe-meringue-d27509.netlify.app/.netlify/functions/proxy?url=";
     const gamesEndpoint = "https://slhjx7xcc1.execute-api.us-east-2.amazonaws.com/prod/api/getGames?year=2025&organizationId=9";
+
     let allGames = [];
 
     async function fetchData() {
-      try {
-        const response = await fetch(gamesEndpoint);
-        const data = await response.json();
-        return data.games || [];
-      } catch (err) {
-        console.error("Fetch error:", err);
-        return [];
-      }
+      const response = await fetch(proxyUrl + encodeURIComponent(gamesEndpoint));
+      const data = await response.json();
+      return data.games || [];
     }
 
     function getDayOfWeek(dateStr) {
-      const [y, m, d] = dateStr.split('-').map(Number);
-      const utcNoon = Date.UTC(y, m - 1, d, 12, 0, 0);
-      const dt = new Date(utcNoon);
-      const formatter = new Intl.DateTimeFormat('en-US', { weekday: 'long', timeZone: 'America/Chicago' });
-      return formatter.format(dt);
+      const days = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+      return days[new Date(dateStr + "T00:00:00-05:00").getDay()];
     }
 
     function renderSchedule(games) {
       const tbody = document.querySelector("#scheduleTable tbody");
       tbody.innerHTML = "";
-      let currentDay = "";
-      let currentWeek = null;
 
+      let currentDate = "";
       games.forEach(game => {
+        // ✅ Skip invalid rows
+        if (!game.week || !game.game_date) return;
+
         const gameDate = game.game_date;
         const dayName = getDayOfWeek(gameDate);
+        const week = game.week;
 
-        if (dayName !== currentDay || game.week !== currentWeek) {
-          currentDay = dayName;
-          currentWeek = game.week;
+        if (gameDate !== currentDate) {
+          currentDate = gameDate;
           const row = document.createElement("tr");
           row.classList.add("day-separator");
           const cell = document.createElement("td");
           cell.colSpan = 8;
-          // Format MM/DD
-          const [y, m, d] = gameDate.split('-').map(Number);
-          const formattedDate = `${String(m).padStart(2,'0')}/${String(d).padStart(2,'0')}`;
-          cell.textContent = `Week ${game.week} – ${dayName} (${formattedDate})`;
+          cell.textContent = `Week ${week} - ${dayName} (${gameDate})`;
           row.appendChild(cell);
           tbody.appendChild(row);
         }
 
+        const statusLabel = game.status ? game.status.charAt(0).toUpperCase() + game.status.slice(1) : "Unconfirmed";
+
         const row = document.createElement("tr");
         row.innerHTML = `
-          <td>${game.status ? game.status.charAt(0).toUpperCase() + game.status.slice(1) : "Unconfirmed"}</td>
-          <td>${gameDate}</td>
+          <td>${statusLabel}</td>
           <td>${dayName}</td>
-          <td>${game.game_time}</td>
-          <td>${game.home_team_name || ""}<br><small>${game.division_name || ""}</small></td>
-          <td>${game.away_team_name || ""}<br><small>${game.division_name || ""}</small></td>
-          <td>${game.field_name || ""}</td>
+          <td>${game.game_time || ""}</td>
+          <td>${game.home_team_name || ""}</td>
+          <td>${game.away_team_name || ""}</td>
+          <td>${game.division_name || ""}</td>
+          <td>${game.google_map_url ? `<a href="${game.google_map_url}" target="_blank">${game.field_name || ""}</a>` : (game.field_name || "")}</td>
           <td>${(game.home_score ?? 0)} - ${(game.away_score ?? 0)}</td>
         `;
         tbody.appendChild(row);
@@ -141,23 +134,24 @@
     }
 
     function applyFilters() {
-      const weekSelect = document.getElementById("weekSelect");
-      const homeAwaySelect = document.getElementById("homeAwaySelect");
-      const divisionSelect = document.getElementById("divisionSelect");
+      const weekFilter = document.getElementById("weekSelect").value;
+      const locationFilter = document.getElementById("locationSelect").value;
+      const divisionFilter = document.getElementById("divisionSelect").value;
+
       let filtered = [...allGames];
 
-      if (weekSelect.value !== "all") {
-        filtered = filtered.filter(g => g.week === parseInt(weekSelect.value));
+      if (weekFilter !== "all") {
+        filtered = filtered.filter(g => g.week == weekFilter);
       }
 
-      if (homeAwaySelect.value === "home") {
+      if (locationFilter === "home") {
         filtered = filtered.filter(g => g.home_organization_name === "Bloomingdale");
-      } else if (homeAwaySelect.value === "away") {
+      } else if (locationFilter === "away") {
         filtered = filtered.filter(g => g.away_organization_name === "Bloomingdale");
       }
 
-      if (divisionSelect.value !== "all") {
-        filtered = filtered.filter(g => g.division_name === divisionSelect.value);
+      if (divisionFilter !== "all") {
+        filtered = filtered.filter(g => g.division_name === divisionFilter);
       }
 
       renderSchedule(filtered);
@@ -166,18 +160,26 @@
     async function init() {
       allGames = await fetchData();
 
-      // Build week dropdown
       const weekSelect = document.getElementById("weekSelect");
-      const weeks = [...new Set(allGames.map(g => g.week))].sort((a, b) => a - b);
+      const divisionSelect = document.getElementById("divisionSelect");
+
+      const weeks = [...new Set(allGames.map(g => g.week).filter(Boolean))].sort((a, b) => a - b);
 
       weeks.forEach(w => {
-        const weekGames = allGames.filter(g => g.week === w);
+        const weekGames = allGames.filter(g => g.week === w && g.game_date);
         const dates = weekGames.map(g => new Date(g.game_date));
-        const minDate = new Date(Math.min(...dates));
-        const maxDate = new Date(Math.max(...dates));
-        const fmt = d => `${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')}`;
+        if (!dates.length) return;
+
+        let minDate = new Date(Math.min(...dates));
+        let maxDate = new Date(Math.max(...dates));
+
+        if (w == 9) {
+          minDate = maxDate = new Date("2025-10-26");
+        }
+
+        const fmt = d => `${String(d.getMonth()+1).padStart(2,"0")}/${String(d.getDate()).padStart(2,"0")}`;
         const rangeLabel = minDate.getTime() === maxDate.getTime()
-          ? fmt(minDate)
+          ? `${fmt(minDate)}-${fmt(minDate)}`
           : `${fmt(minDate)}-${fmt(maxDate)}`;
 
         const opt = document.createElement("option");
@@ -186,8 +188,6 @@
         weekSelect.appendChild(opt);
       });
 
-      // Build division dropdown
-      const divisionSelect = document.getElementById("divisionSelect");
       const divisions = [...new Set(allGames.map(g => g.division_name).filter(Boolean))].sort();
       divisions.forEach(d => {
         const opt = document.createElement("option");
@@ -196,21 +196,21 @@
         divisionSelect.appendChild(opt);
       });
 
-      // Hook up filters
-      weekSelect.addEventListener("change", applyFilters);
-      homeAwaySelect.addEventListener("change", applyFilters);
-      divisionSelect.addEventListener("change", applyFilters);
-      document.getElementById("resetBtn").addEventListener("click", () => {
+      document.getElementById("resetFilters").addEventListener("click", () => {
         weekSelect.value = "all";
-        homeAwaySelect.value = "all";
+        document.getElementById("locationSelect").value = "all";
         divisionSelect.value = "all";
-        applyFilters();
+        renderSchedule(allGames);
       });
 
-      applyFilters();
+      weekSelect.addEventListener("change", applyFilters);
+      document.getElementById("locationSelect").addEventListener("change", applyFilters);
+      divisionSelect.addEventListener("change", applyFilters);
+
+      renderSchedule(allGames);
     }
 
-    // Back to Top button logic
+    // Floating Back to Top logic
     const backToTop = document.getElementById("backToTop");
     window.addEventListener("scroll", () => {
       backToTop.style.display = window.scrollY > 300 ? "block" : "none";
