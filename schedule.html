@@ -1,19 +1,45 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Bloomingdale Bears Schedule</title>
   <style>
     body { font-family: Arial, sans-serif; margin: 20px; }
-    h1 { color: #003366; }
-    table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+    h1 { color: #003366; margin: 0 0 12px; }
+    label { font-weight: bold; margin-right: 8px; }
+    select { padding: 4px 6px; }
+
+    table { width: 100%; border-collapse: collapse; margin-top: 12px; }
     th, td { border: 1px solid #003366; padding: 8px; text-align: center; }
     th { background-color: #003366; color: white; }
-    .day-separator { background-color: #f2f2f2; font-weight: bold; text-align: left; }
-    .team-cell { display: flex; align-items: center; gap: 8px; justify-content: center; }
+    .day-separator td {
+      background: #f3f6fb;
+      font-weight: bold;
+      text-align: left;
+    }
+    .team-cell {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      justify-content: center;
+      min-height: 24px;
+    }
     .team-cell img { width: 24px; height: 24px; }
-    #debugPanel { margin-top: 20px; border: 1px solid #ccc; padding: 10px; background: #f9f9f9; }
-    #debugPanel pre { max-height: 400px; overflow-y: auto; white-space: pre-wrap; word-wrap: break-word; }
+
+    #debugPanel {
+      margin-top: 16px;
+      border: 1px solid #ccc;
+      background: #fafafa;
+      padding: 10px;
+    }
+    #debugPanel h3 { margin: 0 0 8px; }
+    #debugOutput {
+      max-height: 320px;
+      overflow: auto;
+      white-space: pre-wrap;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+      font-size: 12px;
+    }
   </style>
 </head>
 <body>
@@ -37,106 +63,232 @@
     <tbody></tbody>
   </table>
 
-  <!-- Debugging panel -->
   <div id="debugPanel">
     <h3>Debug Output (Raw JSON)</h3>
-    <pre id="debugOutput">Loading...</pre>
+    <pre id="debugOutput">Waiting for data…</pre>
   </div>
 
-  <script>
-    const proxyUrl = "https://taupe-meringue-d27509.netlify.app/.netlify/functions/proxy?url=";
-    const gamesEndpoint = "https://slhjx7xcc1.execute-api.us-east-2.amazonaws.com/prod/api/getGames?year=2025&organizationId=9";
+<script>
+/** CONFIG **/
+const YEAR = 2025;
+const MAX_WEEKS_TO_PROBE = 14;       // adjust if your league has more/less weeks
+const proxyBase = "https://taupe-meringue-d27509.netlify.app/.netlify/functions/proxy?url=";
+const gamesApi = (week) =>
+  `https://slhjx7xcc1.execute-api.us-east-2.amazonaws.com/prod/api/getGames?year=${YEAR}&week=${week}`;
 
-    const logos = {
-      "Bloomingdale": "http://bgyfl-website-new-prod.s3-website.us-east-2.amazonaws.com/assets/bloomingdale.png"
-    };
+// Optional: quick logos map (we can wire to BGYFL org list later)
+const LOGOS = {
+  "Bloomingdale": "http://bgyfl-website-new-prod.s3-website.us-east-2.amazonaws.com/assets/bloomingdale.png",
+};
 
-    async function fetchData() {
-      const response = await fetch(proxyUrl + encodeURIComponent(gamesEndpoint));
-      const data = await response.json();
-      console.log("API payload:", data);
+/** Utilities **/
+function parseUTCDate(ymd) {
+  // ymd = "YYYY-MM-DD"
+  const [y, m, d] = ymd.split("-").map(Number);
+  return new Date(Date.UTC(y, m - 1, d));
+}
+function dayNameFromUTC(ymd) {
+  const d = parseUTCDate(ymd);
+  return ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"][d.getUTCDay()];
+}
+function ensureText(v) { return (v == null ? "" : String(v)); }
 
-      // Show the raw JSON in debug panel
-      document.getElementById("debugOutput").textContent = JSON.stringify(data, null, 2);
+/** Robust field readers (API sometimes changes keys) **/
+function readHomeOrg(g) {
+  return g.home_team?.organization_name ||
+         g.home_org ||
+         g.home_organization ||
+         g.homeOrganization ||
+         "";
+}
+function readHomeTeamName(g) {
+  return g.home_team?.team_name ||
+         g.home_team_name ||
+         g.homeTeamName ||
+         "";
+}
+function readAwayOrg(g) {
+  return g.away_team?.organization_name ||
+         g.away_org ||
+         g.away_organization ||
+         g.awayOrganization ||
+         "";
+}
+function readAwayTeamName(g) {
+  return g.away_team?.team_name ||
+         g.away_team_name ||
+         g.awayTeamName ||
+         "";
+}
+function readFieldName(g) {
+  return g.field?.field_name ||
+         g.field_name ||
+         g.fieldName ||
+         "";
+}
 
-      return data.games || [];
+/** Render helpers **/
+function renderTeamCell(org, team) {
+  const display = (org ? `${org} ${team || ""}`.trim() : "TBD");
+  const town = org?.split(" ")[0];
+  const logo = LOGOS[town] || "";
+  return logo ? `<div class="team-cell"><img src="${logo}" alt="${town} logo" /> ${display}</div>`
+              : `<div class="team-cell">${display}</div>`;
+}
+
+/** Fetch one week via proxy **/
+async function fetchWeek(week) {
+  const url = proxyBase + encodeURIComponent(gamesApi(week));
+  const res = await fetch(url);
+  const json = await res.json().catch(() => ({}));
+  return json;
+}
+
+/** Page state **/
+const cache = new Map();  // week -> {success, games, ...}
+
+/** Populate week dropdown by probing weeks with data **/
+async function initWeekOptions() {
+  const weekSelect = document.getElementById("weekSelect");
+  weekSelect.innerHTML = ""; // clear
+
+  const probes = [];
+  for (let w = 1; w <= MAX_WEEKS_TO_PROBE; w++) {
+    probes.push(fetchWeek(w).then(payload => ({ w, payload })).catch(() => ({ w, payload: null })));
+  }
+  const results = await Promise.all(probes);
+
+  // Filter to the weeks that actually returned games
+  const available = results
+    .map(({ w, payload }) => ({ w, payload }))
+    .filter(({ payload }) => payload && payload.success !== false) // API has "success": false on error
+    .map(({ w, payload }) => {
+      const games = Array.isArray(payload.games) ? payload.games : [];
+      return { w, games };
+    })
+    .filter(({ games }) => games.length > 0);
+
+  // Build label "Week X – MM/DD" from earliest date in that week
+  available.forEach(({ w, games }) => {
+    const dates = games.map(g => g.game_date).filter(Boolean).sort();
+    const earliest = dates[0] || "";
+    const label = earliest ? `Week ${w} – ${earliest.replace(/^(\d{4})-(\d{2})-(\d{2})$/, "$2/$3")}`
+                           : `Week ${w}`;
+    const opt = document.createElement("option");
+    opt.value = String(w);
+    opt.textContent = label;
+    weekSelect.appendChild(opt);
+
+    // Cache the week payload so we don't refetch later
+    cache.set(w, { success: true, games });
+  });
+
+  // If nothing found, still add Week 1 as a fallback
+  if (weekSelect.options.length === 0) {
+    const opt = document.createElement("option");
+    opt.value = "1";
+    opt.textContent = "Week 1";
+    weekSelect.appendChild(opt);
+  }
+}
+
+/** Render the selected week, filtering to Bloomingdale games **/
+function renderWeek(week) {
+  const tbody = document.querySelector("#scheduleTable tbody");
+  tbody.innerHTML = "";
+
+  const cached = cache.get(Number(week));
+  const games = cached?.games || [];
+
+  // Filter to Bloomingdale (home or away); change this to show all if you like
+  const bloomGames = games.filter(g => {
+    const homeOrg = readHomeOrg(g);
+    const awayOrg = readAwayOrg(g);
+    return /Bloomingdale/i.test(homeOrg) || /Bloomingdale/i.test(awayOrg);
+  });
+
+  // Sort by date/time
+  bloomGames.sort((a, b) => (a.game_date + " " + a.game_time).localeCompare(b.game_date + " " + b.game_time));
+
+  let currentDay = "";
+  for (const g of bloomGames) {
+    const date = ensureText(g.game_date);
+    const time = ensureText(g.game_time);
+
+    const dayName = date ? dayNameFromUTC(date) : "";
+    if (dayName && dayName !== currentDay) {
+      currentDay = dayName;
+      const sep = document.createElement("tr");
+      sep.className = "day-separator";
+      sep.innerHTML = `<td colspan="7">${dayName}</td>`;
+      tbody.appendChild(sep);
     }
 
-    function getDayOfWeek(dateStr) {
-      const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-      return days[new Date(dateStr).getDay()];
+    const homeOrg = readHomeOrg(g);
+    const awayOrg = readAwayOrg(g);
+    const homeTeam = readHomeTeamName(g);
+    const awayTeam = readAwayTeamName(g);
+    const field = readFieldName(g);
+    const score = `${ensureText(g.home_score ?? "0")} - ${ensureText(g.away_score ?? "0")}`;
+
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${date}</td>
+      <td>${dayName}</td>
+      <td>${time}</td>
+      <td>${renderTeamCell(homeOrg, homeTeam)}</td>
+      <td>${renderTeamCell(awayOrg, awayTeam)}</td>
+      <td>${ensureText(field)}</td>
+      <td>${score}</td>
+    `;
+    tbody.appendChild(tr);
+  }
+}
+
+/** Wire up everything **/
+(async function init() {
+  // 1) Build week list by probing weeks with data (and cache them)
+  await initWeekOptions();
+
+  // 2) Show raw JSON for the first week in the debug panel
+  const weekSelect = document.getElementById("weekSelect");
+  const initialWeek = Number(weekSelect.value || "1");
+
+  // If we didn’t cache this week yet (edge), fetch and cache it
+  if (!cache.has(initialWeek)) {
+    const payload = await fetchWeek(initialWeek);
+    const games = Array.isArray(payload.games) ? payload.games : [];
+    cache.set(initialWeek, { success: true, games });
+  }
+
+  // Put full JSON into the debug panel for visibility
+  document.getElementById("debugOutput").textContent = JSON.stringify(
+    cache.get(initialWeek),
+    null, 2
+  );
+
+  // 3) Render Bloomingdale view for the initial week
+  renderWeek(initialWeek);
+
+  // 4) Hook up week change
+  weekSelect.addEventListener("change", async () => {
+    const w = Number(weekSelect.value);
+
+    // If not cached, fetch and cache
+    if (!cache.has(w)) {
+      const payload = await fetchWeek(w);
+      const games = Array.isArray(payload.games) ? payload.games : [];
+      cache.set(w, { success: true, games });
     }
 
-    function renderSchedule(games, week) {
-      const tbody = document.querySelector("#scheduleTable tbody");
-      tbody.innerHTML = "";
-
-      const filtered = games.filter(g => g.week === week);
-
-      let currentDay = "";
-      filtered.forEach(game => {
-        const gameDate = game.game_date;
-        const dayName = getDayOfWeek(gameDate);
-
-        if (dayName !== currentDay) {
-          currentDay = dayName;
-          const row = document.createElement("tr");
-          row.classList.add("day-separator");
-          const cell = document.createElement("td");
-          cell.colSpan = 7;
-          cell.textContent = dayName;
-          row.appendChild(cell);
-          tbody.appendChild(row);
-        }
-
-        const row = document.createElement("tr");
-        row.innerHTML = `
-          <td>${gameDate || ""}</td>
-          <td>${dayName || ""}</td>
-          <td>${game.game_time || ""}</td>
-          <td class="team-cell">${renderTeam(game.home_team)}</td>
-          <td class="team-cell">${renderTeam(game.away_team)}</td>
-          <td>${game.field?.field_name || ""}</td>
-          <td>${(game.home_score ?? "0")} - ${(game.away_score ?? "0")}</td>
-        `;
-        tbody.appendChild(row);
-      });
-    }
-
-    function renderTeam(teamObj) {
-      if (!teamObj) return "TBD";
-      const org = teamObj.organization_name || "";
-      const team = teamObj.team_name || "";
-      const displayName = `${org} ${team}`;
-      const logo = logos[org] || "";
-      return logo ? `<img src="${logo}" alt="${org} logo"/> ${displayName}` : displayName;
-    }
-
-    async function init() {
-      const games = await fetchData();
-      console.log("Games parsed:", games);
-
-      const weekSelect = document.getElementById("weekSelect");
-      const weeks = [...new Set(games.map(g => g.week))].sort((a, b) => a - b);
-
-      weeks.forEach(w => {
-        const opt = document.createElement("option");
-        opt.value = w;
-        opt.textContent = `Week ${w}`;
-        weekSelect.appendChild(opt);
-      });
-
-      weekSelect.addEventListener("change", () => {
-        renderSchedule(games, parseInt(weekSelect.value));
-      });
-
-      if (weeks.length > 0) {
-        weekSelect.value = weeks[0];
-        renderSchedule(games, weeks[0]);
-      }
-    }
-
-    init();
-  </script>
+    // Update debug pane and table
+    document.getElementById("debugOutput").textContent = JSON.stringify(
+      cache.get(w),
+      null, 2
+    );
+    renderWeek(w);
+  });
+})();
+</script>
 </body>
 </html>
