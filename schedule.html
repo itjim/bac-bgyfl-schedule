@@ -10,6 +10,25 @@
     th, td { border: 1px solid #003366; padding: 8px; text-align: center; }
     th { background-color: #003366; color: white; }
     .day-separator { background-color: #f2f2f2; font-weight: bold; text-align: left; }
+    #debugPanel { 
+      display: none; 
+      margin-top: 20px; 
+      padding: 10px; 
+      border: 1px solid #ccc; 
+      background: #fafafa; 
+      white-space: pre-wrap; 
+      font-family: monospace;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+    #debugToggle {
+      margin-top: 15px;
+      padding: 6px 12px;
+      background: #003366;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
@@ -33,9 +52,14 @@
     <tbody></tbody>
   </table>
 
+  <button id="debugToggle">Show Debug</button>
+  <div id="debugPanel"></div>
+
   <script>
     const proxyUrl = "https://taupe-meringue-d27509.netlify.app/.netlify/functions/proxy?url=";
     const gamesEndpoint = "https://slhjx7xcc1.execute-api.us-east-2.amazonaws.com/prod/api/getGames?year=2025";
+
+    let allGames = [];
 
     async function fetchData() {
       const response = await fetch(proxyUrl + encodeURIComponent(gamesEndpoint));
@@ -53,12 +77,11 @@
       const tbody = document.querySelector("#scheduleTable tbody");
       tbody.innerHTML = "";
 
-      // ✅ filter only Bloomingdale games
       const filtered = games.filter(g =>
         g.week === week &&
         (
-          g.home_team?.organization_name === "Bloomingdale" ||
-          g.away_team?.organization_name === "Bloomingdale"
+          g.home_team?.organization_name?.includes("Bloomingdale") ||
+          g.away_team?.organization_name?.includes("Bloomingdale")
         )
       );
 
@@ -93,11 +116,14 @@
     }
 
     async function init() {
-      const games = await fetchData();
-      console.log("Games parsed:", games);
+      allGames = await fetchData();
+      console.log("Games parsed:", allGames);
+
+      // Populate debug panel
+      document.getElementById("debugPanel").textContent = JSON.stringify(allGames, null, 2);
 
       const weekSelect = document.getElementById("weekSelect");
-      const weeks = [...new Set(games.map(g => g.week))].sort((a, b) => a - b);
+      const weeks = [...new Set(allGames.map(g => g.week))].sort((a, b) => a - b);
 
       weeks.forEach(w => {
         const opt = document.createElement("option");
@@ -107,14 +133,26 @@
       });
 
       weekSelect.addEventListener("change", () => {
-        renderSchedule(games, parseInt(weekSelect.value));
+        renderSchedule(allGames, parseInt(weekSelect.value));
       });
 
       if (weeks.length > 0) {
         weekSelect.value = weeks[0];
-        renderSchedule(games, weeks[0]);
+        renderSchedule(allGames, weeks[0]);
       }
     }
+
+    // Debug toggle
+    document.getElementById("debugToggle").addEventListener("click", () => {
+      const panel = document.getElementById("debugPanel");
+      if (panel.style.display === "none") {
+        panel.style.display = "block";
+        document.getElementById("debugToggle").textContent = "Hide Debug";
+      } else {
+        panel.style.display = "none";
+        document.getElementById("debugToggle").textContent = "Show Debug";
+      }
+    });
 
     init();
   </script>
