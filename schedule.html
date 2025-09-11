@@ -4,73 +4,23 @@
   <meta charset="UTF-8">
   <title>Bloomingdale Bears Schedule</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 20px;
-    }
-    h1 {
-      color: #003366;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 15px;
-    }
-    th, td {
-      border: 1px solid #ccc;
-      padding: 8px;
-      text-align: center;
-    }
-    th {
-      background: #003366;
-      color: white;
-    }
-    .controls {
-      margin-bottom: 15px;
-    }
-    .controls select, .controls button {
-      margin-right: 10px;
-      padding: 5px 10px;
-    }
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    h1 { color: #003366; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
+    th { background-color: #003366; color: white; }
+    select, button { margin-right: 10px; padding: 5px; }
   </style>
 </head>
 <body>
   <h1>Bloomingdale Bears Schedule</h1>
 
-  <div class="controls">
-    <label for="weekSelect">Select Week:</label>
-    <select id="weekSelect"></select>
+  <label for="week">Select Week:</label>
+  <select id="week"></select>
 
-    <label for="teamSelect">Select Team:</label>
-    <select id="teamSelect">
-      <option value="all">All Bloomingdale Teams</option>
-      <option value="Flag Football - Bloomingdale Black">Flag Football - Bloomingdale Black</option>
-      <option value="Flag Football - Bloomingdale Blue">Flag Football - Bloomingdale Blue</option>
-      <option value="Flag Football - Bloomingdale Gray">Flag Football - Bloomingdale Gray</option>
-      <option value="Flag Football - Bloomingdale Red">Flag Football - Bloomingdale Red</option>
-      <option value="Flag Football - Bloomingdale White">Flag Football - Bloomingdale White</option>
-      <option value="8U Division - Bloomingdale Red">8U Division - Bloomingdale Red</option>
-      <option value="8U Division - Bloomingdale White">8U Division - Bloomingdale White</option>
-      <option value="9U Gold Division - Bloomingdale">9U Gold Division - Bloomingdale</option>
-      <option value="9U Silver Division - Bloomingdale">9U Silver Division - Bloomingdale</option>
-      <option value="10U Gold Division - Bloomingdale">10U Gold Division - Bloomingdale</option>
-      <option value="10U Silver Division - Bloomingdale">10U Silver Division - Bloomingdale</option>
-      <option value="11U Gold D1 Division - Bloomingdale">11U Gold D1 Division - Bloomingdale</option>
-      <option value="11U Silver Division - Bloomingdale">11U Silver Division - Bloomingdale</option>
-      <option value="JV Gold D2 Division - Bloomingdale">JV Gold D2 Division - Bloomingdale</option>
-      <option value="JV Silver Division - Bloomingdale">JV Silver Division - Bloomingdale</option>
-      <option value="Varsity Gold D1 Division - Bloomingdale">Varsity Gold D1 Division - Bloomingdale</option>
-      <option value="Varsity Silver Division - Bloomingdale">Varsity Silver Division - Bloomingdale</option>
-      <option value="Girls Flag Football - JV - Bloomingdale Blue">Girls Flag Football - JV - Bloomingdale Blue</option>
-      <option value="Girls Flag Football - JV - Bloomingdale Red">Girls Flag Football - JV - Bloomingdale Red</option>
-      <option value="Girls Flag Football - Varsity - Bloomingdale Blue">Girls Flag Football - Varsity - Bloomingdale Blue</option>
-      <option value="Girls Flag Football - Varsity - Bloomingdale Red">Girls Flag Football - Varsity - Bloomingdale Red</option>
-    </select>
+  <button id="showAll">Show All BGYFL Games</button>
 
-    <button id="toggleBtn">Show All BGYFL Games</button>
-  </div>
-
-  <table id="scheduleTable">
+  <table id="schedule">
     <thead>
       <tr>
         <th>Date</th>
@@ -85,76 +35,74 @@
   </table>
 
   <script>
-    const proxy = "https://taupe-meringue-d27509.netlify.app/.netlify/functions/proxy?url=";
-    const gamesApi = "https://slhjx7xcc1.execute-api.us-east-2.amazonaws.com/prod/api/getGames?year=2025&organizationId=9";
+    const API_BASE = "https://taupe-meringue-d27509.netlify.app/.netlify/functions/proxy?url=";
+    const GAMES_URL = "https://slhjx7xcc1.execute-api.us-east-2.amazonaws.com/prod/api/getGames";
+    const TEAMS_URL = "https://slhjx7xcc1.execute-api.us-east-2.amazonaws.com/prod/api/getTeams?year=2025&organizationId=9";
 
-    let allGames = [];
-    let bloomOnly = true;
+    let teamsMap = {};
 
-    async function fetchGames() {
-      const res = await fetch(proxy + encodeURIComponent(gamesApi));
+    async function fetchTeams() {
+      const res = await fetch(API_BASE + encodeURIComponent(TEAMS_URL));
       const data = await res.json();
-      allGames = data.games || [];
-      populateWeeks();
-      renderSchedule();
-    }
-
-    function populateWeeks() {
-      const weekSelect = document.getElementById("weekSelect");
-      weekSelect.innerHTML = "";
-      const weeks = [...new Set(allGames.map(g => g.week))].sort((a,b)=>a-b);
-
-      weeks.forEach(week => {
-        const date = allGames.find(g => g.week === week)?.game_date;
-        const opt = document.createElement("option");
-        opt.value = week;
-        opt.textContent = `Week ${week} – ${date}`;
-        weekSelect.appendChild(opt);
+      data.teams.forEach(t => {
+        teamsMap[t.id] = t.name;
       });
-
-      // Default to current week or first
-      weekSelect.selectedIndex = 0;
     }
 
-    function renderSchedule() {
-      const week = document.getElementById("weekSelect").value;
-      const team = document.getElementById("teamSelect").value;
-      const tbody = document.querySelector("#scheduleTable tbody");
+    async function fetchGames(week) {
+      const url = `${GAMES_URL}?year=2025&week=${week}`;
+      const res = await fetch(API_BASE + encodeURIComponent(url));
+      return await res.json();
+    }
+
+    function renderGames(games) {
+      const tbody = document.querySelector("#schedule tbody");
       tbody.innerHTML = "";
 
-      let filtered = allGames.filter(g => g.week == week);
-
-      if (bloomOnly) {
-        if (team === "all") {
-          filtered = filtered.filter(g => g.home_team.includes("Bloomingdale") || g.away_team.includes("Bloomingdale"));
-        } else {
-          filtered = filtered.filter(g => g.home_team === team || g.away_team === team);
-        }
-      }
-
-      filtered.forEach(g => {
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td>${g.game_date}</td>
-          <td>${g.game_time}</td>
-          <td>${g.home_team || ""}</td>
-          <td>${g.away_team || ""}</td>
-          <td>${g.field || ""}</td>
-          <td>${g.home_score != null && g.away_score != null ? g.home_score + " - " + g.away_score : ""}</td>
+      games.forEach(game => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${game.game_date || ""}</td>
+          <td>${game.game_time || ""}</td>
+          <td>${teamsMap[game.home_team_id] || "TBD"}</td>
+          <td>${teamsMap[game.away_team_id] || "TBD"}</td>
+          <td>${game.field || ""}</td>
+          <td>${game.home_score ?? 0} - ${game.away_score ?? 0}</td>
         `;
-        tbody.appendChild(tr);
+        tbody.appendChild(row);
       });
     }
 
-    document.getElementById("weekSelect").addEventListener("change", renderSchedule);
-    document.getElementById("teamSelect").addEventListener("change", renderSchedule);
-    document.getElementById("toggleBtn").addEventListener("click", () => {
-      bloomOnly = !bloomOnly;
-      document.getElementById("toggleBtn").textContent = bloomOnly ? "Show All BGYFL Games" : "Show Bloomingdale Only";
-      renderSchedule();
-    });
+    async function init() {
+      await fetchTeams();
 
-    fetchGames();
+      // Populate week dropdown (1–10 for now)
+      const weekSelect = document.getElementById("week");
+      for (let i = 1; i <= 10; i++) {
+        const opt = document.createElement("option");
+        opt.value = i;
+        opt.textContent = `Week ${i}`;
+        weekSelect.appendChild(opt);
+      }
+
+      // Default to week 1
+      loadWeek(1);
+
+      weekSelect.addEventListener("change", e => {
+        loadWeek(e.target.value);
+      });
+
+      document.getElementById("showAll").addEventListener("click", () => {
+        loadWeek(weekSelect.value);
+      });
+    }
+
+    async function loadWeek(week) {
+      const data = await fetchGames(week);
+      renderGames(data.games || []);
+    }
+
+    init();
   </script>
 </body>
 </html>
