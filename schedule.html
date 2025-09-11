@@ -1,22 +1,27 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>BGYFL Schedule</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     body { font-family: Arial, sans-serif; margin: 20px; }
-    h1 { color: #003366; }
-    table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+    h1 { color: #003366; margin-bottom: 12px; }
+    .controls { margin: 8px 0 16px; }
+    select { padding: 6px 8px; font-size: 14px; }
+    table { width: 100%; border-collapse: collapse; }
     th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
-    th { background-color: #003366; color: white; }
-    select, button { margin: 5px; padding: 5px; }
+    th { background: #003366; color: #fff; }
+    .muted { color: #666; }
   </style>
 </head>
 <body>
   <h1>BGYFL Schedule</h1>
 
-  <label for="weekSelect">Select Week:</label>
-  <select id="weekSelect"></select>
+  <div class="controls">
+    <label for="weekSelect">Select Week:&nbsp;</label>
+    <select id="weekSelect"></select>
+  </div>
 
   <table id="scheduleTable">
     <thead>
@@ -29,70 +34,191 @@
         <th>Score</th>
       </tr>
     </thead>
-    <tbody></tbody>
+    <tbody id="scheduleBody"></tbody>
   </table>
 
   <script>
-    const API_BASE = "https://taupe-meringue-d27509.netlify.app/.netlify/functions/proxy?url=" +
-      encodeURIComponent("https://slhjx7xcc1.execute-api.us-east-2.amazonaws.com/prod/api");
+    // ---- CONFIG -------------------------------------------------------------
+    const PROXY = "https://taupe-meringue-d27509.netlify.app/.netlify/functions/proxy?url=";
+    const API_ROOT = "https://slhjx7xcc1.execute-api.us-east-2.amazonaws.com/prod/api";
+    const YEAR = 2025;
 
-    async function fetchGames(year = 2025) {
-      const res = await fetch(`${API_BASE}/getGames?year=${year}`);
-      const data = await res.json();
-      return data.games || [];
+    // If you want a specific range, adjust here (BGYFL typically ~10–12 weeks)
+    const WEEK_RANGE = Array.from({ length: 12 }, (_, i) => i + 1);
+
+    // Optional: Town -> Mascot to produce "Elmhurst Eagles", etc.
+    const MASCOT_MAP = {
+      "Arlington Heights": "Cowboys",
+      "Bloomingdale": "Bears",
+      "Carol Stream": "Panthers",
+      "Downers Grove": "Panthers",
+      "Elmhurst": "Eagles",
+      "Glen Ellyn": "Eagles",
+      "Hinsdale": "Falcons",
+      "Lemont": "Hornets",
+      "Lombard": "Falcons",
+      "Lyons Township": "Tigers",
+      "Midwest": "Raiders",
+      "Naperville": "Saints",
+      "Oak Park River Forest": "Huskies",
+      "Oswego": "Panthers",
+      "Palatine": "Panthers",
+      "Park Ridge": "Falcons",
+      "Plainfield": "Junior Cats",
+      "Tri City": "Chargers",
+      "Wheaton": "Rams"
+    };
+
+    // ---- HELPERS ------------------------------------------------------------
+    async function api(pathWithQuery) {
+      const url = PROXY + encodeURIComponent(`${API_ROOT}${pathWithQuery}`);
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`API error ${res.status}`);
+      return res.json();
     }
 
-    function groupByWeek(games) {
-      const weeks = {};
-      games.forEach(g => {
-        if (!weeks[g.week]) weeks[g.week] = [];
-        weeks[g.week].push(g);
-      });
-      return weeks;
+    // Format "Town + Mascot" if org name is available (fallback to team name if not)
+    function prettyTeamName(game, side /* 'home'|'away' */) {
+      // Try org/town name (e.g., "Elmhurst")
+      const orgName =
+        game[`${side}_org_name`] ||
+        game[`${side}_organization_name`] ||
+        game[`${side}_organization`] ||
+        null;
+
+      // Try full team name if provided (e.g., "Bloomingdale Blue")
+      const team =
+        game[`${side}_team`] ||
+        game[`${side}Team`] ||
+        null;
+
+      if (orgName) {
+        const mascot = MASCOT_MAP[orgName.trim()] || null;
+        return mascot ? `${orgName} ${mascot}` : orgName;
+      }
+
+      // If we don't have an org/town, use the team string (often present on org-scoped calls)
+      return team || "TBD";
     }
 
-    function renderWeeks(weeks) {
-      const weekSelect = document.getElementById("weekSelect");
-      weekSelect.innerHTML = "";
-      Object.keys(weeks).sort((a, b) => a - b).forEach(week => {
-        const option = document.createElement("option");
-        option.value = week;
-        option.textContent = `Week ${week}`;
-        weekSelect.appendChild(option);
+    function prettyField(game) {
+      return (
+        game.field_name ||
+        game.field ||
+        game.fieldName ||
+        ""
+      );
+    }
+
+    function prettyScore(game) {
+      const hs = (game.home_score ?? game.homeScore);
+      const as = (game.away_score ?? game.awayScore);
+      // Show blank if scores are null/undefined (not played yet)
+      if (hs == null || as == null) return "";
+      return `${hs} - ${as}`;
+    }
+
+    function toDateObj(game) {
+      // Combine date + time into a sort-friendly Date
+      // Example: "2025-08-30" + "10:00:00" => local Date object
+      const d = game.game_date || game.date;
+      const t = (game.game_time || game.time || "00:00:00").slice(0,8);
+      return new Date(`${d}T${t}`);
+    }
+
+    // ---- UI RENDERING -------------------------------------------------------
+    function renderWeekOptions(firstWeekWithData) {
+      const sel = document.getElementById("weekSelect");
+      sel.innerHTML = "";
+      WEEK_RANGE.forEach(w => {
+        const opt = document.createElement("option");
+        opt.value = String(w);
+        opt.textContent = `Week ${w}`;
+        sel.appendChild(opt);
       });
+      // Default: the first week that returned data; otherwise week 1
+      sel.value = String(firstWeekWithData || 1);
     }
 
     function renderGames(games) {
-      const tbody = document.querySelector("#scheduleTable tbody");
-      tbody.innerHTML = "";
-      games.forEach(g => {
-        const row = document.createElement("tr");
-        row.innerHTML = `
-          <td>${g.game_date}</td>
-          <td>${g.game_time}</td>
-          <td>${g.home_org_name || "TBD"}</td>
-          <td>${g.away_org_name || "TBD"}</td>
-          <td>${g.field_name || "TBD"}</td>
-          <td>${g.home_score ?? 0} - ${g.away_score ?? 0}</td>
+      const body = document.getElementById("scheduleBody");
+      body.innerHTML = "";
+
+      if (!games || games.length === 0) {
+        const tr = document.createElement("tr");
+        const td = document.createElement("td");
+        td.colSpan = 6;
+        td.className = "muted";
+        td.textContent = "No games found for this week.";
+        tr.appendChild(td);
+        body.appendChild(tr);
+        return;
+      }
+
+      // Sort by date+time
+      games.sort((a, b) => toDateObj(a) - toDateObj(b));
+
+      for (const g of games) {
+        const tr = document.createElement("tr");
+        const dateStr = g.game_date || g.date || "";
+        const timeStr = (g.game_time || g.time || "").slice(0,8);
+
+        tr.innerHTML = `
+          <td>${dateStr}</td>
+          <td>${timeStr}</td>
+          <td>${prettyTeamName(g, "home")}</td>
+          <td>${prettyTeamName(g, "away")}</td>
+          <td>${prettyField(g)}</td>
+          <td>${prettyScore(g)}</td>
         `;
-        tbody.appendChild(row);
-      });
+        body.appendChild(tr);
+      }
+    }
+
+    // ---- MAIN FLOW ----------------------------------------------------------
+    async function fetchWeekGames(week) {
+      // For ALL BGYFL you MUST include a filter: week is perfect for that.
+      // Endpoint: /getGames?year=2025&week={n}
+      const data = await api(`/getGames?year=${YEAR}&week=${week}`);
+      return data.games || [];
     }
 
     async function init() {
-      const games = await fetchGames(2025);
-      const weeks = groupByWeek(games);
-      renderWeeks(weeks);
+      let firstWeekWithData = null;
 
-      const weekSelect = document.getElementById("weekSelect");
-      weekSelect.addEventListener("change", () => {
-        renderGames(weeks[weekSelect.value]);
+      // Build week dropdown first (1..N)
+      renderWeekOptions(1);
+
+      // Prefetch the *first* week that actually has data (so the page isn't empty)
+      for (const w of WEEK_RANGE) {
+        try {
+          const g = await fetchWeekGames(w);
+          if (g.length > 0) {
+            firstWeekWithData = w;
+            renderWeekOptions(firstWeekWithData);
+            renderGames(g);
+            break;
+          }
+        } catch (e) {
+          // ignore individual week errors and continue
+        }
+      }
+
+      // Hook up change handler
+      document.getElementById("weekSelect").addEventListener("change", async (e) => {
+        const w = Number(e.target.value);
+        try {
+          const g = await fetchWeekGames(w);
+          renderGames(g);
+        } catch (err) {
+          renderGames([]);
+          console.error(err);
+        }
       });
 
-      // Default to first week
-      if (weekSelect.options.length > 0) {
-        weekSelect.selectedIndex = 0;
-        renderGames(weeks[weekSelect.value]);
+      // If none had data (unlikely), still show empty state for week 1
+      if (!firstWeekWithData) {
+        renderGames([]);
       }
     }
 
