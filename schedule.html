@@ -4,41 +4,14 @@
   <meta charset="UTF-8">
   <title>Bloomingdale Bears Schedule</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 20px;
-    }
-    h1 {
-      color: #003366;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 15px;
-    }
-    th, td {
-      border: 1px solid #003366;
-      padding: 8px;
-      text-align: center;
-    }
-    th {
-      background-color: #003366;
-      color: white;
-    }
-    .day-separator {
-      background-color: #f2f2f2;
-      font-weight: bold;
-      text-align: left;
-    }
-    .team-cell {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .team-cell img {
-      width: 24px;
-      height: 24px;
-    }
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    h1 { color: #003366; }
+    table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+    th, td { border: 1px solid #003366; padding: 8px; text-align: center; }
+    th { background-color: #003366; color: white; }
+    .day-separator { background-color: #f2f2f2; font-weight: bold; text-align: left; }
+    .team-cell { display: flex; align-items: center; gap: 8px; justify-content: center; }
+    .team-cell img { width: 24px; height: 24px; }
   </style>
 </head>
 <body>
@@ -66,12 +39,11 @@
     const proxyUrl = "https://taupe-meringue-d27509.netlify.app/.netlify/functions/proxy?url=";
     const gamesEndpoint = "https://slhjx7xcc1.execute-api.us-east-2.amazonaws.com/prod/api/getGames?year=2025&organizationId=9";
 
-    // Preload logos mapping from the teams page
+    // Temporary logo map (we’ll extend later from BGYFL site)
     const logos = {
       "Bloomingdale": "http://bgyfl-website-new-prod.s3-website.us-east-2.amazonaws.com/assets/bloomingdale.png",
-      "Elmhurst": "http://bgyfl-website-new-prod.s3-website.us-east-2.amazonaws.com/assets/elmhurst.png",
-      "Naperville": "http://bgyfl-website-new-prod.s3-website.us-east-2.amazonaws.com/assets/naperville.png"
-      // add other towns as needed, can be automated later
+      "Naperville": "http://bgyfl-website-new-prod.s3-website.us-east-2.amazonaws.com/assets/naperville.png",
+      "Elmhurst": "http://bgyfl-website-new-prod.s3-website.us-east-2.amazonaws.com/assets/elmhurst.png"
     };
 
     async function fetchData() {
@@ -90,7 +62,7 @@
       tbody.innerHTML = "";
 
       const filtered = games.filter(g => g.week === week && 
-        (g.home_team.includes("Bloomingdale") || g.away_team.includes("Bloomingdale"))
+        (g.home_org?.includes("Bloomingdale") || g.away_org?.includes("Bloomingdale"))
       );
 
       let currentDay = "";
@@ -114,8 +86,8 @@
           <td>${gameDate}</td>
           <td>${dayName}</td>
           <td>${game.game_time}</td>
-          <td class="team-cell">${renderTeam(game.home_team)}</td>
-          <td class="team-cell">${renderTeam(game.away_team)}</td>
+          <td class="team-cell">${renderTeam(game.home_org)}</td>
+          <td class="team-cell">${renderTeam(game.away_org)}</td>
           <td>${game.field || ""}</td>
           <td>${game.home_score} - ${game.away_score}</td>
         `;
@@ -123,11 +95,11 @@
       });
     }
 
-    function renderTeam(teamName) {
-      if (!teamName) return "TBD";
-      const town = teamName.split(" ")[0];
+    function renderTeam(orgName) {
+      if (!orgName) return "TBD";
+      const town = orgName.split(" ")[0];
       const logo = logos[town] || "";
-      return logo ? `<img src="${logo}" alt="${town} logo"/> ${teamName}` : teamName;
+      return logo ? `<img src="${logo}" alt="${town} logo"/> ${orgName}` : orgName;
     }
 
     async function init() {
