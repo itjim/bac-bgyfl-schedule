@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>BGYFL Schedule (All Teams)</title>
+  <title>Bloomingdale Bears Schedule</title>
   <style>
     body { font-family: Arial, sans-serif; margin: 20px; }
     h1 { color: #003366; }
@@ -10,36 +10,41 @@
     th, td { border: 1px solid #003366; padding: 6px; text-align: center; }
     th { background-color: #003366; color: white; }
     .day-separator { background-color: #f2f2f2; font-weight: bold; text-align: left; }
-    #debugPanel { 
-      display: none; 
-      margin-top: 20px; 
-      padding: 10px; 
-      border: 1px solid #ccc; 
-      background: #fafafa; 
-      white-space: pre-wrap; 
-      font-family: monospace;
-      max-height: 400px;
-      overflow-y: auto;
-    }
-    #debugToggle {
-      margin-top: 15px;
-      padding: 6px 12px;
-      background: #003366;
-      color: white;
-      border: none;
-      cursor: pointer;
-    }
+    #filters { margin-bottom: 15px; }
+    #filters label { margin-right: 10px; }
+    #filters select { margin-right: 20px; padding: 5px; }
+    #resetBtn { padding: 6px 12px; background: #003366; color: white; border: none; cursor: pointer; }
+    .bye-row { background-color: rgba(65, 105, 225, 0.25); font-weight: bold; }
   </style>
 </head>
 <body>
-  <h1>BGYFL Schedule (All Teams)</h1>
+  <h1>Bloomingdale Bears Schedule</h1>
 
-  <label for="weekSelect">Select Week:</label>
-  <select id="weekSelect"></select>
+  <div id="filters">
+    <label for="weekSelect">Filter by Week:</label>
+    <select id="weekSelect">
+      <option value="all">All Weeks</option>
+    </select>
+
+    <label for="homeAwaySelect">Filter by Location:</label>
+    <select id="homeAwaySelect">
+      <option value="all">All Games</option>
+      <option value="home">Home</option>
+      <option value="away">Away</option>
+    </select>
+
+    <label for="divisionSelect">Filter by Division:</label>
+    <select id="divisionSelect">
+      <option value="all">All Divisions</option>
+    </select>
+
+    <button id="resetBtn">Reset Filters</button>
+  </div>
 
   <table id="scheduleTable">
     <thead>
       <tr>
+        <th>Status</th>
         <th>Date</th>
         <th>Day</th>
         <th>Time</th>
@@ -52,103 +57,139 @@
     <tbody></tbody>
   </table>
 
-  <button id="debugToggle">Show Debug</button>
-  <div id="debugPanel"></div>
-
   <script>
-    const proxyUrl = "https://taupe-meringue-d27509.netlify.app/.netlify/functions/proxy?url=";
-    // ✅ Include organizationId=9 for Bloomingdale; but remove it to fetch ALL teams
-    const gamesEndpoint = "https://slhjx7xcc1.execute-api.us-east-2.amazonaws.com/prod/api/getGames?year=2025";
-
+    const gamesEndpoint = "https://slhjx7xcc1.execute-api.us-east-2.amazonaws.com/prod/api/getGames?year=2025&organizationId=9";
     let allGames = [];
 
     async function fetchData() {
-      const response = await fetch(proxyUrl + encodeURIComponent(gamesEndpoint));
-      const data = await response.json();
-      console.log("API payload:", data);
-      return data.games || [];
+      try {
+        const response = await fetch(gamesEndpoint);
+        const data = await response.json();
+        return data.games || [];
+      } catch (err) {
+        console.error("Fetch error:", err);
+        return [];
+      }
     }
 
     function getDayOfWeek(dateStr) {
-      const days = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
-      return days[new Date(dateStr).getDay()];
+      const [y, m, d] = dateStr.split('-').map(Number);
+      const utcNoon = Date.UTC(y, m - 1, d, 12, 0, 0);
+      const dt = new Date(utcNoon);
+      const formatter = new Intl.DateTimeFormat('en-US', { weekday: 'long', timeZone: 'America/Chicago' });
+      return formatter.format(dt);
     }
 
-    function renderSchedule(games, week) {
+    function renderSchedule(games) {
       const tbody = document.querySelector("#scheduleTable tbody");
       tbody.innerHTML = "";
-
-      const filtered = games.filter(g => g.week === week);
-
       let currentDay = "";
-      filtered.forEach(game => {
+
+      games.forEach(game => {
         const gameDate = game.game_date;
         const dayName = getDayOfWeek(gameDate);
 
-        // Add day separator row
+        // Insert day separator
         if (dayName !== currentDay) {
           currentDay = dayName;
           const row = document.createElement("tr");
           row.classList.add("day-separator");
           const cell = document.createElement("td");
-          cell.colSpan = 7;
+          cell.colSpan = 8;
           cell.textContent = `${dayName} (${gameDate})`;
           row.appendChild(cell);
           tbody.appendChild(row);
         }
 
+        // Check if it's a BYE
+        const isBye = !game.away_team_name && game.home_organization_name === "Bloomingdale";
+
         const row = document.createElement("tr");
+        if (isBye) row.classList.add("bye-row");
+
         row.innerHTML = `
+          <td>${game.status ? game.status.charAt(0).toUpperCase() + game.status.slice(1) : "Unconfirmed"}</td>
           <td>${gameDate}</td>
           <td>${dayName}</td>
-          <td>${game.game_time}</td>
-          <td>${game.home_organization_name} ${game.home_team_name || ""}</td>
-          <td>${game.away_organization_name} ${game.away_team_name || ""}</td>
+          <td>${game.game_time || ""}</td>
+          <td>${game.home_team_name || ""}<br><small>${game.division_name || ""}</small></td>
+          <td>${isBye ? "BYE" : (game.away_team_name || "")}<br><small>${isBye ? "" : (game.division_name || "")}</small></td>
           <td>${game.field_name || ""}</td>
-          <td>${(game.home_score ?? 0)} - ${(game.away_score ?? 0)}</td>
+          <td>${isBye ? "" : ((game.home_score ?? 0) + " - " + (game.away_score ?? 0))}</td>
         `;
         tbody.appendChild(row);
       });
     }
 
+    function applyFilters() {
+      const weekSelect = document.getElementById("weekSelect");
+      const homeAwaySelect = document.getElementById("homeAwaySelect");
+      const divisionSelect = document.getElementById("divisionSelect");
+      let filtered = [...allGames];
+
+      if (weekSelect.value !== "all") {
+        filtered = filtered.filter(g => g.week === parseInt(weekSelect.value));
+      }
+
+      if (homeAwaySelect.value === "home") {
+        filtered = filtered.filter(g => g.home_organization_name === "Bloomingdale");
+      } else if (homeAwaySelect.value === "away") {
+        filtered = filtered.filter(g => g.away_organization_name === "Bloomingdale");
+      }
+
+      if (divisionSelect.value !== "all") {
+        filtered = filtered.filter(g => g.division_name === divisionSelect.value);
+      }
+
+      renderSchedule(filtered);
+    }
+
     async function init() {
       allGames = await fetchData();
-      console.log("Games parsed:", allGames);
 
-      // ✅ Debug panel shows raw JSON
-      document.getElementById("debugPanel").textContent = JSON.stringify(allGames, null, 2);
-
+      // Build week dropdown
       const weekSelect = document.getElementById("weekSelect");
       const weeks = [...new Set(allGames.map(g => g.week))].sort((a, b) => a - b);
 
       weeks.forEach(w => {
+        const weekGames = allGames.filter(g => g.week === w);
+        const dates = weekGames.map(g => new Date(g.game_date));
+        const minDate = new Date(Math.min(...dates));
+        const maxDate = new Date(Math.max(...dates));
+        const fmt = d => `${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')}`;
+        const rangeLabel = minDate.getTime() === maxDate.getTime()
+          ? fmt(minDate)
+          : `${fmt(minDate)}-${fmt(maxDate)}`;
+
         const opt = document.createElement("option");
         opt.value = w;
-        opt.textContent = `Week ${w}`;
+        opt.textContent = `Week ${w} (${rangeLabel})`;
         weekSelect.appendChild(opt);
       });
 
-      weekSelect.addEventListener("change", () => {
-        renderSchedule(allGames, parseInt(weekSelect.value));
+      // Build division dropdown
+      const divisionSelect = document.getElementById("divisionSelect");
+      const divisions = [...new Set(allGames.map(g => g.division_name).filter(Boolean))].sort();
+      divisions.forEach(d => {
+        const opt = document.createElement("option");
+        opt.value = d;
+        opt.textContent = d;
+        divisionSelect.appendChild(opt);
       });
 
-      if (weeks.length > 0) {
-        weekSelect.value = weeks[0];
-        renderSchedule(allGames, weeks[0]);
-      }
-    }
+      // Hook up filters
+      weekSelect.addEventListener("change", applyFilters);
+      homeAwaySelect.addEventListener("change", applyFilters);
+      divisionSelect.addEventListener("change", applyFilters);
+      document.getElementById("resetBtn").addEventListener("click", () => {
+        weekSelect.value = "all";
+        homeAwaySelect.value = "all";
+        divisionSelect.value = "all";
+        applyFilters();
+      });
 
-    // Debug toggle
-    document.getElementById("debugToggle").addEventListener("click", () => {
-      const panel = document.getElementById("debugPanel");
-      if (panel.style.display === "none") {
-        panel.style.display = "block";
-        document.getElementById("debugToggle").textContent = "Hide Debug";
-      } else {
-        panel.style.display = "none";
-        document.getElementById("debugToggle").textContent = "Show Debug";
-      }
-    });
+      applyFilters();
+    }
 
     init();
   </script>
