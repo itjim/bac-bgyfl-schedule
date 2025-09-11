@@ -53,17 +53,21 @@
     let showingAll = false;
 
     async function fetchData() {
-      const teamsRes = await fetch(teamsUrl);
-      const teamsData = await teamsRes.json();
-      bloomTeams = teamsData.teams.map(t => t.name);
+      try {
+        const teamsRes = await fetch(teamsUrl);
+        const teamsData = await teamsRes.json();
+        bloomTeams = teamsData.teams.map(t => t.name);
 
-      const gamesRes = await fetch(gamesUrl);
-      const gamesData = await gamesRes.json();
-      allGames = gamesData.games;
+        const gamesRes = await fetch(gamesUrl);
+        const gamesData = await gamesRes.json();
+        allGames = gamesData.games;
 
-      populateWeekDropdown();
-      populateTeamDropdown();
-      renderSchedule();
+        populateWeekDropdown();
+        populateTeamDropdown();
+        renderSchedule();
+      } catch (err) {
+        console.error("Error fetching data:", err);
+      }
     }
 
     function populateWeekDropdown() {
@@ -102,12 +106,12 @@
       if (!showingAll) {
         if (team !== "all") {
           filtered = filtered.filter(g =>
-            g.home_team.name === team || g.away_team.name === team
+            g.home_team === team || g.away_team === team
           );
         } else {
           filtered = filtered.filter(g =>
-            bloomTeams.includes(g.home_team.name) ||
-            bloomTeams.includes(g.away_team.name)
+            bloomTeams.includes(g.home_team) ||
+            bloomTeams.includes(g.away_team)
           );
         }
       }
@@ -124,8 +128,8 @@
         tr.innerHTML = `
           <td>${date}</td>
           <td>${g.game_time || ""}</td>
-          <td class="${bloomTeams.includes(g.home_team.name) ? 'bloomingdale' : ''}">${g.home_team.name}</td>
-          <td class="${bloomTeams.includes(g.away_team.name) ? 'bloomingdale' : ''}">${g.away_team.name}</td>
+          <td class="${bloomTeams.includes(g.home_team) ? 'bloomingdale' : ''}">${g.home_team}</td>
+          <td class="${bloomTeams.includes(g.away_team) ? 'bloomingdale' : ''}">${g.away_team}</td>
           <td>${g.field_name || ''}</td>
           <td>${scoreDisplay}</td>
         `;
