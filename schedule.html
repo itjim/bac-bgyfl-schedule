@@ -123,11 +123,11 @@
     }
 
     function getDayOfWeek(dateStr) {
-      if (!dateStr) return "";
-      const [y, m, d] = dateStr.split('-').map(Number);
-      const dt = new Date(Date.UTC(y, m - 1, d, 12));
-      return new Intl.DateTimeFormat('en-US', { weekday: 'long', timeZone: 'America/Chicago' }).format(dt);
-    }
+  const days = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+  const date = new Date(dateStr + "T00:00:00");
+  return date.toLocaleDateString("en-US", { weekday: "long", timeZone: "America/Chicago" });
+	}
+
 
     function renderSchedule(games) {
       const tbody = document.querySelector("#scheduleTable tbody");
@@ -249,17 +249,39 @@
       allGames = await fetchGames();
 
       // Populate Week dropdown with week ranges
-      const weekSelect = document.getElementById("weekSelect");
-      const weeks = [...new Set(allGames.map(g => g.week))].filter(Boolean).sort((a,b)=>a-b);
-      weeks.forEach(w => {
-        const wg = allGames.filter(g => g.week === w && g.game_date);
-        const ds = wg.map(g => new Date(g.game_date)).sort((a,b)=>a-b);
-        const fmt = d => `${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}`;
-        let label = ds.length ? `${fmt(ds[0])}${ds.length>1?'-'+fmt(ds[ds.length-1]):""}` : "";
-        const opt = document.createElement("option");
-        opt.value = w; opt.textContent = `Week ${w} (${label})`;
-        weekSelect.appendChild(opt);
-      });
+      const weeks = [...new Set(allGames.map(g => g.week))].sort((a, b) => a - b);
+weeks.forEach(week => {
+  const opt = document.createElement("option");
+  opt.value = week;
+
+  if (week === 9) {
+    // Force Week 9 static label
+    opt.textContent = "Week 9 (10/25-10/26)";
+  } else {
+    const gamesInWeek = allGames.filter(g => g.week === week);
+
+    const minISO = gamesInWeek.reduce((m, g) => (m < g.game_date ? m : g.game_date), gamesInWeek[0].game_date);
+    const maxISO = gamesInWeek.reduce((m, g) => (m > g.game_date ? m : g.game_date), gamesInWeek[0].game_date);
+
+    const fmt = { month: "2-digit", day: "2-digit", timeZone: "America/Chicago" };
+    const startLabel = new Date(minISO + "T12:00:00").toLocaleDateString("en-US", fmt);
+    const endLabel   = new Date(maxISO + "T12:00:00").toLocaleDateString("en-US", fmt);
+
+    opt.textContent = `Week ${week} (${startLabel}-${endLabel})`;
+  }
+
+  weekSelect.appendChild(opt);
+});
+
+// Optional placeholder for Playoffs — not active yet
+/*
+const optPlayoffs = document.createElement("option");
+optPlayoffs.value = "playoffs";
+optPlayoffs.textContent = "Playoffs (TBD)";
+weekSelect.appendChild(optPlayoffs);
+*/
+
+
 
       // Build unique divisions (keep current behavior)
       const divSet = new Set(allGames.map(g => g.division_name).filter(Boolean));
@@ -414,5 +436,4 @@
   </script>
 </body>
 </html>
-
 
