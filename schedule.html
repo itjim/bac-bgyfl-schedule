@@ -2,54 +2,238 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Bloomingdale Bears BGYFL Schedule</title>
   <style>
-    body { font-family: Arial, sans-serif; margin: 20px; }
-    h1 { color: #003366; }
-    table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-    th, td { border: 1px solid #003366; padding: 6px; text-align: center; }
-    th { background-color: #003366; color: white; }
-    .day-separator { background-color: #f2f2f2; font-weight: bold; text-align: left; }
+    :root {
+      --bac-blue: #003366;
+      --bac-blue-light: #0055aa;
+      --border: #d5dbe3;
+      --muted: #5f6b76;
+      --soft: #f5f7fa;
+      --notice: #fff8df;
+      --notice-border: #e2c455;
+      --success: #edf8ef;
+      --success-border: #82b98a;
+      --error: #fff0f0;
+      --error-border: #d58b8b;
+    }
 
-    #filters { margin-bottom: 15px; display: flex; flex-wrap: wrap; gap: 14px 18px; align-items: center; }
+    * { box-sizing: border-box; }
+
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      color: #1f2933;
+      background: #fff;
+    }
+
+    h1 {
+      color: var(--bac-blue);
+      margin-bottom: 4px;
+    }
+
+    .subtitle {
+      margin: 0 0 8px;
+      color: var(--muted);
+      font-size: 1.05rem;
+    }
+
+    .disclaimer {
+      margin: 0 0 16px;
+      font-size: 0.92rem;
+      color: var(--muted);
+    }
+
+    #dataStatus {
+      margin: 12px 0 18px;
+      padding: 10px 12px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: var(--soft);
+    }
+
+    #dataStatus.notice {
+      background: var(--notice);
+      border-color: var(--notice-border);
+    }
+
+    #dataStatus.success {
+      background: var(--success);
+      border-color: var(--success-border);
+    }
+
+    #dataStatus.error {
+      background: var(--error);
+      border-color: var(--error-border);
+    }
+
+    #filters {
+      margin-bottom: 15px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px 18px;
+      align-items: center;
+    }
+
     #filters label { margin-right: 4px; }
-    #filters select { padding: 5px; }
 
-    /* Dropdown checkbox menus */
-    .filter-dropdown { position: relative; display: inline-block; }
+    #filters select {
+      padding: 6px;
+      border: 1px solid #888;
+      border-radius: 4px;
+      background: white;
+    }
+
+    .filter-dropdown {
+      position: relative;
+      display: inline-block;
+    }
+
     .filter-btn {
-      padding: 6px 12px; border: 1px solid #888; background: #fff; cursor: pointer; border-radius: 4px;
-      min-width: 160px; text-align: left;
+      padding: 6px 12px;
+      border: 1px solid #888;
+      background: #fff;
+      cursor: pointer;
+      border-radius: 4px;
+      min-width: 180px;
+      text-align: left;
     }
-    .filter-btn:after { content: "▾"; float: right; }
+
+    .filter-btn:after {
+      content: "▾";
+      float: right;
+    }
+
     .menu {
-      position: absolute; top: 110%; left: 0; background: #fff; border: 1px solid #ccc;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.15); display: none; z-index: 20;
-      max-height: 320px; overflow: auto; white-space: nowrap; padding: 8px; border-radius: 6px;
-      min-width: 280px;
+      position: absolute;
+      top: 110%;
+      left: 0;
+      background: #fff;
+      border: 1px solid #ccc;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+      display: none;
+      z-index: 20;
+      max-height: 360px;
+      overflow: auto;
+      white-space: nowrap;
+      padding: 8px;
+      border-radius: 6px;
+      min-width: 300px;
     }
-    .menu label { display: flex; align-items: center; gap: 8px; padding: 4px 2px; cursor: pointer; }
-    .menu .section-title { font-weight: bold; color: #003366; padding: 4px 2px 2px; }
-    .menu .divider { height: 1px; background: #eee; margin: 6px 0; }
-    .menu input[type="checkbox"] { transform: scale(1.05); }
 
-    #resetBtn { padding: 6px 12px; background: #003366; color: #fff; border: none; border-radius: 4px; cursor: pointer; }
+    .menu label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 4px 2px;
+      cursor: pointer;
+    }
 
-    /* Back to top button */
+    .menu .divider {
+      height: 1px;
+      background: #eee;
+      margin: 6px 0;
+    }
+
+    .menu input[type="checkbox"] {
+      transform: scale(1.05);
+    }
+
+    #resetBtn {
+      padding: 7px 12px;
+      background: var(--bac-blue);
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    #resetBtn:hover { background: var(--bac-blue-light); }
+
+    .table-wrap {
+      width: 100%;
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+      min-width: 920px;
+    }
+
+    th, td {
+      border: 1px solid var(--bac-blue);
+      padding: 7px 6px;
+      text-align: center;
+      vertical-align: middle;
+    }
+
+    th {
+      background-color: var(--bac-blue);
+      color: white;
+    }
+
+    .day-separator td {
+      background-color: #edf1f5;
+      font-weight: bold;
+      text-align: left;
+      color: var(--bac-blue);
+    }
+
+    .bye-row {
+      background: #fafafa;
+      font-style: italic;
+    }
+
+    .tbd {
+      color: var(--muted);
+      font-style: italic;
+    }
+
+    .no-results td {
+      padding: 22px;
+      color: var(--muted);
+      background: #fafafa;
+    }
+
     #backToTop {
-      position: fixed; bottom: 20px; right: 20px;
-      padding: 10px 15px; background: #003366; color: white;
-      border: none; border-radius: 6px; cursor: pointer; display: none; z-index: 1000;
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      padding: 10px 15px;
+      background: var(--bac-blue);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      display: none;
+      z-index: 1000;
     }
-    #backToTop:hover { background: #0055aa; }
+
+    #backToTop:hover { background: var(--bac-blue-light); }
+
+    @media (max-width: 700px) {
+      body { margin: 12px; }
+      h1 { font-size: 1.55rem; }
+      #filters { gap: 10px; }
+      .filter-btn { min-width: 160px; }
+    }
   </style>
 </head>
 <body>
-  <h1>Bloomingdale Bears BGYFL Schedule - note: check with your coach or BAC to ensure accuracy</h1>
+  <h1>Bloomingdale Bears BGYFL Schedule</h1>
+  <p class="subtitle"><span id="seasonLabel">2026</span> Season</p>
+  <p class="disclaimer">Schedule data is provided by BGYFL. Please confirm game details with your coach or BAC before traveling.</p>
+
+  <div id="dataStatus">Loading live BGYFL schedule data…</div>
 
   <div id="filters">
     <label for="weekSelect">Week:</label>
-    <select id="weekSelect"><option value="all">All Weeks</option></select>
+    <select id="weekSelect">
+      <option value="all">All Weeks</option>
+    </select>
 
     <label for="homeAwaySelect">Home/Away:</label>
     <select id="homeAwaySelect">
@@ -58,7 +242,6 @@
       <option value="away">Away</option>
     </select>
 
-    <!-- Divisions multi-select -->
     <div class="filter-dropdown" id="divisionDropdown">
       <button type="button" class="filter-btn" id="divisionBtn">All Divisions</button>
       <div class="menu" id="divisionMenu">
@@ -68,7 +251,6 @@
       </div>
     </div>
 
-    <!-- Teams multi-select -->
     <div class="filter-dropdown" id="teamDropdown">
       <button type="button" class="filter-btn" id="teamBtn">All Teams</button>
       <div class="menu" id="teamMenu">
@@ -81,133 +263,263 @@
     <button id="resetBtn">Reset Filters</button>
   </div>
 
-  <table id="scheduleTable">
-    <thead>
-      <tr>
-        <th>Status</th>
-        <th>Date</th>
-        <th>Day</th>
-        <th>Time</th>
-        <th>Home Team</th>
-        <th>Away Team</th>
-        <th>Division</th>
-        <th>Field</th>
-        <th>Score</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
+  <div class="table-wrap">
+    <table id="scheduleTable">
+      <thead>
+        <tr>
+          <th>Status</th>
+          <th>Date</th>
+          <th>Day</th>
+          <th>Time</th>
+          <th>Home Team</th>
+          <th>Away Team</th>
+          <th>Division</th>
+          <th>Field</th>
+          <th>Score</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
 
   <button id="backToTop">Back to Top</button>
 
   <script>
-    const API_URL = "https://slhjx7xcc1.execute-api.us-east-2.amazonaws.com/prod/api/getGames?year=2025&organizationId=9";
-    const onNetlify = () => window.location.host.endsWith(".netlify.app") || window.location.pathname.startsWith("/.netlify/");
-    const proxied   = (url) => "/.netlify/functions/proxy?url=" + encodeURIComponent(url);
+    const DEFAULT_SEASON_YEAR = 2026;
+    const ORGANIZATION_ID = 9;
+    const ORGANIZATION_NAME = "Bloomingdale";
+
+    const params = new URLSearchParams(window.location.search);
+    const requestedYear = parseInt(params.get("year"), 10);
+    const SEASON_YEAR = Number.isInteger(requestedYear) && requestedYear >= 2025 && requestedYear <= 2100
+      ? requestedYear
+      : DEFAULT_SEASON_YEAR;
+
+    document.getElementById("seasonLabel").textContent = SEASON_YEAR;
+    document.title = `Bloomingdale Bears BGYFL Schedule - ${SEASON_YEAR}`;
+
+    const API_URL =
+      `https://slhjx7xcc1.execute-api.us-east-2.amazonaws.com/prod/api/getGames?year=${SEASON_YEAR}&organizationId=${ORGANIZATION_ID}`;
+
+    const onNetlify = () =>
+      window.location.host.endsWith(".netlify.app") ||
+      window.location.pathname.startsWith("/.netlify/");
+
+    const proxied = () =>
+      `/.netlify/functions/proxy?year=${encodeURIComponent(SEASON_YEAR)}&organizationId=${encodeURIComponent(ORGANIZATION_ID)}`;
 
     let allGames = [];
-    let teamDivisionMap = {};          // "Division – Team" -> "Division"
-    let allDivisions = [];             // list of division names
-    let allTeams = [];                 // list of team keys "Division – Team"
-
-    // Multi-select state (empty arrays = "All")
+    let teamDivisionMap = {};
+    let allDivisions = [];
+    let allTeams = [];
     let selectedDivisions = [];
     let selectedTeams = [];
 
-    async function fetchGames() {
-      if (onNetlify()) {
-        try { const r = await fetch(proxied(API_URL)); const j = await r.json(); if (j && j.games) return j.games; } catch {}
+    function setStatus(message, cssClass = "") {
+      const el = document.getElementById("dataStatus");
+      el.textContent = message;
+      el.className = cssClass;
+    }
+
+    async function fetchJson(url, options = {}) {
+      const r = await fetch(url, options);
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      const j = await r.json();
+      if (!j || !Array.isArray(j.games)) {
+        throw new Error("Unexpected BGYFL response format");
       }
-      try { const r = await fetch(API_URL, { mode: "cors" }); const j = await r.json(); if (j && j.games) return j.games; } catch {}
-      try { const r = await fetch("games-sample.json"); const j = await r.json(); return j.games || []; } catch { return []; }
+      return j.games;
+    }
+
+    async function fetchGames() {
+      const errors = [];
+
+      if (onNetlify()) {
+        try {
+          return await fetchJson(proxied());
+        } catch (err) {
+          errors.push(`Netlify proxy: ${err.message}`);
+        }
+      }
+
+      try {
+        return await fetchJson(API_URL, { mode: "cors" });
+      } catch (err) {
+        errors.push(`Direct API: ${err.message}`);
+      }
+
+      throw new Error(errors.join("; ") || "Unable to retrieve BGYFL schedule");
+    }
+
+    function displayValue(value, fallback = "TBD") {
+      if (value === null || value === undefined || String(value).trim() === "") {
+        return `<span class="tbd">${fallback}</span>`;
+      }
+      return escapeHtml(String(value));
+    }
+
+    function escapeHtml(value) {
+      return value
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
     }
 
     function getDayOfWeek(dateStr) {
-  const days = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
-  const date = new Date(dateStr + "T00:00:00");
-  return date.toLocaleDateString("en-US", { weekday: "long", timeZone: "America/Chicago" });
-	}
+      if (!dateStr) return "";
+      return new Date(dateStr + "T12:00:00").toLocaleDateString("en-US", {
+        weekday: "long",
+        timeZone: "America/Chicago"
+      });
+    }
 
+    function formatDate(dateStr) {
+      if (!dateStr) return "";
+      return new Date(dateStr + "T12:00:00").toLocaleDateString("en-US", {
+        month: "2-digit",
+        day: "2-digit",
+        year: "numeric",
+        timeZone: "America/Chicago"
+      });
+    }
+
+    function formatScore(game) {
+      if (game.status === "bye") return "";
+      const hs = game.home_score;
+      const as = game.away_score;
+
+      if (hs === null || hs === undefined || as === null || as === undefined) return "";
+
+      const completedStatuses = new Set(["final", "completed", "complete"]);
+      if (!completedStatuses.has(String(game.status || "").toLowerCase()) && hs === 0 && as === 0) {
+        return "";
+      }
+
+      return `${hs} - ${as}`;
+    }
+
+    function groupLabel(game) {
+      const week = `Week ${game.week ?? "TBD"}`;
+      if (!game.game_date) return `${week} – Date/Time TBD`;
+
+      const dayName = getDayOfWeek(game.game_date);
+      const date = formatDate(game.game_date);
+      return `${week} – ${dayName} (${date})`;
+    }
 
     function renderSchedule(games) {
       const tbody = document.querySelector("#scheduleTable tbody");
       tbody.innerHTML = "";
 
-      let currentDay = "";
-      let currentWeek = null;
+      if (!games.length) {
+        const row = document.createElement("tr");
+        row.className = "no-results";
+        row.innerHTML = `<td colspan="9">No games match the current filters.</td>`;
+        tbody.appendChild(row);
+        return;
+      }
 
-      games.forEach(game => {
-        if (!game.game_date) return;
-        const dayName = getDayOfWeek(game.game_date);
+      const sortedGames = [...games].sort((a, b) => {
+        const wa = Number(a.week ?? 999);
+        const wb = Number(b.week ?? 999);
+        if (wa !== wb) return wa - wb;
 
-        if (dayName !== currentDay || game.week !== currentWeek) {
-          currentDay = dayName; currentWeek = game.week;
-          const row = document.createElement("tr");
-          row.classList.add("day-separator");
-          const cell = document.createElement("td");
-          cell.colSpan = 9;
-          const [y, m, d] = game.game_date.split('-').map(Number);
-          const mmdd = `${String(m).padStart(2,'0')}/${String(d).padStart(2,'0')}`;
-          cell.textContent = `Week ${game.week} – ${dayName} (${mmdd})`;
-          row.appendChild(cell);
-          tbody.appendChild(row);
+        const da = a.game_date || "9999-12-31";
+        const db = b.game_date || "9999-12-31";
+        if (da !== db) return da.localeCompare(db);
+
+        const ta = a.game_time || "99:99";
+        const tb = b.game_time || "99:99";
+        if (ta !== tb) return ta.localeCompare(tb);
+
+        return String(a.division_name || "").localeCompare(String(b.division_name || ""));
+      });
+
+      let currentGroup = "";
+
+      sortedGames.forEach(game => {
+        const group = groupLabel(game);
+
+        if (group !== currentGroup) {
+          currentGroup = group;
+          const sep = document.createElement("tr");
+          sep.className = "day-separator";
+          sep.innerHTML = `<td colspan="9">${escapeHtml(group)}</td>`;
+          tbody.appendChild(sep);
         }
 
+        const isBye = String(game.status || "").toLowerCase() === "bye";
         const row = document.createElement("tr");
+        if (isBye) row.className = "bye-row";
+
+        const awayName = isBye ? "BYE" : displayValue(game.away_team_name);
+        const status = game.status
+          ? game.status.charAt(0).toUpperCase() + game.status.slice(1)
+          : "Unconfirmed";
+
         row.innerHTML = `
-          <td>${game.status ? game.status.charAt(0).toUpperCase() + game.status.slice(1) : "Unconfirmed"}</td>
-          <td>${game.game_date || ""}</td>
-          <td>${dayName || ""}</td>
-          <td>${game.game_time || ""}</td>
-          <td>${game.home_team_name || ""}</td>
-          <td>${game.away_team_name || ""}</td>
-          <td>${game.division_name || ""}</td>
-          <td>${game.field_name || ""}</td>
-          <td>${(game.home_score ?? 0)} - ${(game.away_score ?? 0)}</td>
+          <td>${escapeHtml(status)}</td>
+          <td>${game.game_date ? escapeHtml(formatDate(game.game_date)) : '<span class="tbd">TBD</span>'}</td>
+          <td>${game.game_date ? escapeHtml(getDayOfWeek(game.game_date)) : '<span class="tbd">TBD</span>'}</td>
+          <td>${displayValue(game.game_time)}</td>
+          <td>${displayValue(game.home_team_name)}</td>
+          <td>${awayName}</td>
+          <td>${displayValue(game.division_name)}</td>
+          <td>${displayValue(game.field_name)}</td>
+          <td>${escapeHtml(formatScore(game))}</td>
         `;
+
         tbody.appendChild(row);
       });
     }
 
     function labelFor(btn, base, arr) {
-      btn.textContent = (arr.length === 0) ? base : `${base} (${arr.length})`;
+      btn.textContent = arr.length === 0 ? base : `${base} (${arr.length})`;
     }
 
     function rebuildTeamMenuVisibility() {
-      const showAllTeams = (selectedDivisions.length === 0);
+      const showAllTeams = selectedDivisions.length === 0;
       const teamOptions = document.querySelectorAll("#teamOptions input[type='checkbox']");
+
       teamOptions.forEach(cb => {
         const teamKey = cb.value;
         const div = teamDivisionMap[teamKey];
         const visible = showAllTeams || selectedDivisions.includes(div);
         cb.closest("label").style.display = visible ? "flex" : "none";
 
-        // If now hidden but was selected, deselect it
         if (!visible && selectedTeams.includes(teamKey)) {
           cb.checked = false;
           selectedTeams = selectedTeams.filter(t => t !== teamKey);
         }
       });
 
-      const teamBtn = document.getElementById("teamBtn");
-      labelFor(teamBtn, "All Teams", selectedTeams);
-      // If no teams selected (because they were hidden), reset to "All Teams"
-      if (selectedTeams.length === 0) document.getElementById("team-all").checked = true;
+      labelFor(document.getElementById("teamBtn"), "All Teams", selectedTeams);
+      if (selectedTeams.length === 0) {
+        document.getElementById("team-all").checked = true;
+      }
     }
 
     function syncDivisionsFromSelectedTeams() {
-      if (selectedTeams.length === 0) return; // nothing to sync
-      const union = new Set(selectedTeams.map(t => teamDivisionMap[t]).filter(Boolean));
+      if (selectedTeams.length === 0) return;
+
+      const union = new Set(
+        selectedTeams.map(t => teamDivisionMap[t]).filter(Boolean)
+      );
+
       selectedDivisions = [...union];
 
-      // Update UI checkboxes in division menu
-      document.getElementById("div-all").checked = (selectedDivisions.length === 0);
-      const divCbs = document.querySelectorAll("#divisionOptions input[type='checkbox']");
-      divCbs.forEach(cb => cb.checked = selectedDivisions.includes(cb.value));
+      document.getElementById("div-all").checked = selectedDivisions.length === 0;
+      document
+        .querySelectorAll("#divisionOptions input[type='checkbox']")
+        .forEach(cb => cb.checked = selectedDivisions.includes(cb.value));
 
-      // Button label
-      const divisionBtn = document.getElementById("divisionBtn");
-      labelFor(divisionBtn, "All Divisions", selectedDivisions);
+      labelFor(
+        document.getElementById("divisionBtn"),
+        "All Divisions",
+        selectedDivisions
+      );
     }
 
     function applyFilters() {
@@ -215,17 +527,21 @@
       const homeAwaySelect = document.getElementById("homeAwaySelect");
 
       let filtered = [...allGames];
+
       if (weekSelect.value !== "all") {
-        filtered = filtered.filter(g => g.week === parseInt(weekSelect.value));
+        filtered = filtered.filter(g => g.week === parseInt(weekSelect.value, 10));
       }
+
       if (homeAwaySelect.value === "home") {
-        filtered = filtered.filter(g => g.home_organization_name === "Bloomingdale");
+        filtered = filtered.filter(g => g.home_organization_name === ORGANIZATION_NAME);
       } else if (homeAwaySelect.value === "away") {
-        filtered = filtered.filter(g => g.away_organization_name === "Bloomingdale");
+        filtered = filtered.filter(g => g.away_organization_name === ORGANIZATION_NAME);
       }
+
       if (selectedDivisions.length > 0) {
         filtered = filtered.filter(g => selectedDivisions.includes(g.division_name));
       }
+
       if (selectedTeams.length > 0) {
         filtered = filtered.filter(g => {
           const homeKey = `${g.division_name} – ${g.home_team_name}`;
@@ -238,202 +554,266 @@
     }
 
     function closeAllMenus(evtTarget = null) {
-      const menus = document.querySelectorAll(".menu");
-      menus.forEach(m => {
-        if (evtTarget && (m.contains(evtTarget) || m.previousElementSibling === evtTarget)) return;
+      document.querySelectorAll(".menu").forEach(m => {
+        if (
+          evtTarget &&
+          (m.contains(evtTarget) || m.previousElementSibling === evtTarget)
+        ) return;
+
         m.style.display = "none";
       });
     }
 
-    async function init() {
-      allGames = await fetchGames();
+    function weekLabel(week) {
+      const datedGames = allGames.filter(
+        g => g.week === week && g.game_date
+      );
 
-      // Populate Week dropdown with week ranges
-      const weeks = [...new Set(allGames.map(g => g.week))].sort((a, b) => a - b);
-weeks.forEach(week => {
-  const opt = document.createElement("option");
-  opt.value = week;
+      if (!datedGames.length) {
+        return `Week ${week} (dates TBD)`;
+      }
 
-  if (week === 9) {
-    // Force Week 9 static label
-    opt.textContent = "Week 9 (10/25-10/26)";
-  } else {
-    const gamesInWeek = allGames.filter(g => g.week === week);
+      const dates = datedGames
+        .map(g => g.game_date)
+        .filter(Boolean)
+        .sort();
 
-    const minISO = gamesInWeek.reduce((m, g) => (m < g.game_date ? m : g.game_date), gamesInWeek[0].game_date);
-    const maxISO = gamesInWeek.reduce((m, g) => (m > g.game_date ? m : g.game_date), gamesInWeek[0].game_date);
+      const startLabel = new Date(dates[0] + "T12:00:00").toLocaleDateString("en-US", {
+        month: "2-digit",
+        day: "2-digit",
+        timeZone: "America/Chicago"
+      });
 
-    const fmt = { month: "2-digit", day: "2-digit", timeZone: "America/Chicago" };
-    const startLabel = new Date(minISO + "T12:00:00").toLocaleDateString("en-US", fmt);
-    const endLabel   = new Date(maxISO + "T12:00:00").toLocaleDateString("en-US", fmt);
+      const endLabel = new Date(dates[dates.length - 1] + "T12:00:00").toLocaleDateString("en-US", {
+        month: "2-digit",
+        day: "2-digit",
+        timeZone: "America/Chicago"
+      });
 
-    opt.textContent = `Week ${week} (${startLabel}-${endLabel})`;
-  }
+      return startLabel === endLabel
+        ? `Week ${week} (${startLabel})`
+        : `Week ${week} (${startLabel}-${endLabel})`;
+    }
 
-  weekSelect.appendChild(opt);
-});
+    function populateFilters() {
+      const weekSelect = document.getElementById("weekSelect");
+      const weeks = [...new Set(allGames.map(g => g.week).filter(v => v !== null && v !== undefined))]
+        .sort((a, b) => a - b);
 
-// Optional placeholder for Playoffs — not active yet
-/*
-const optPlayoffs = document.createElement("option");
-optPlayoffs.value = "playoffs";
-optPlayoffs.textContent = "Playoffs (TBD)";
-weekSelect.appendChild(optPlayoffs);
-*/
+      weeks.forEach(week => {
+        const opt = document.createElement("option");
+        opt.value = week;
+        opt.textContent = weekLabel(week);
+        weekSelect.appendChild(opt);
+      });
 
-
-
-      // Build unique divisions (keep current behavior)
       const divSet = new Set(allGames.map(g => g.division_name).filter(Boolean));
       allDivisions = [...divSet].sort();
 
-      // Build Bloomingdale teams and map to divisions
       const teamsSet = new Set();
+
       allGames.forEach(g => {
-        if (g.home_organization_name === "Bloomingdale") {
-          const k = `${g.division_name} – ${g.home_team_name}`; teamsSet.add(k); teamDivisionMap[k] = g.division_name;
+        if (g.home_organization_name === ORGANIZATION_NAME && g.home_team_name) {
+          const key = `${g.division_name} – ${g.home_team_name}`;
+          teamsSet.add(key);
+          teamDivisionMap[key] = g.division_name;
         }
-        if (g.away_organization_name === "Bloomingdale") {
-          const k = `${g.division_name} – ${g.away_team_name}`; teamsSet.add(k); teamDivisionMap[k] = g.division_name;
+
+        if (g.away_organization_name === ORGANIZATION_NAME && g.away_team_name) {
+          const key = `${g.division_name} – ${g.away_team_name}`;
+          teamsSet.add(key);
+          teamDivisionMap[key] = g.division_name;
         }
       });
+
       allTeams = [...teamsSet].sort();
 
-      // Populate division menu
       const divisionOptions = document.getElementById("divisionOptions");
       divisionOptions.innerHTML = "";
+
       allDivisions.forEach(d => {
-        const id = "div-" + d.replace(/\W+/g,'_');
+        const id = "div-" + d.replace(/\W+/g, "_");
         const lbl = document.createElement("label");
-        lbl.innerHTML = `<input type="checkbox" id="${id}" value="${d}"> ${d}`;
+        lbl.innerHTML = `<input type="checkbox" id="${id}" value="${escapeHtml(d)}"> ${escapeHtml(d)}`;
         divisionOptions.appendChild(lbl);
       });
 
-      // Populate team menu
       const teamOptions = document.getElementById("teamOptions");
       teamOptions.innerHTML = "";
+
       allTeams.forEach(t => {
-        const id = "team-" + t.replace(/\W+/g,'_');
+        const id = "team-" + t.replace(/\W+/g, "_");
         const lbl = document.createElement("label");
-        lbl.innerHTML = `<input type="checkbox" id="${id}" value="${t}"> ${t}`;
+        lbl.innerHTML = `<input type="checkbox" id="${id}" value="${escapeHtml(t)}"> ${escapeHtml(t)}`;
         teamOptions.appendChild(lbl);
       });
+    }
 
-      // Toggle menus
-      document.getElementById("divisionBtn").addEventListener("click", (e) => {
+    function wireEvents() {
+      document.getElementById("divisionBtn").addEventListener("click", e => {
         const menu = document.getElementById("divisionMenu");
         closeAllMenus(e.target);
-        menu.style.display = (menu.style.display === "block") ? "none" : "block";
+        menu.style.display = menu.style.display === "block" ? "none" : "block";
       });
-      document.getElementById("teamBtn").addEventListener("click", (e) => {
+
+      document.getElementById("teamBtn").addEventListener("click", e => {
         const menu = document.getElementById("teamMenu");
         closeAllMenus(e.target);
-        menu.style.display = (menu.style.display === "block") ? "none" : "block";
+        menu.style.display = menu.style.display === "block" ? "none" : "block";
       });
-      document.addEventListener("click", (e) => {
+
+      document.addEventListener("click", e => {
         if (!e.target.closest(".filter-dropdown")) closeAllMenus();
       });
 
-      // Division menu logic
       const divAllCb = document.getElementById("div-all");
       divAllCb.addEventListener("change", () => {
-        const cbs = document.querySelectorAll("#divisionOptions input[type='checkbox']");
         if (divAllCb.checked) {
-          cbs.forEach(cb => cb.checked = false);
+          document
+            .querySelectorAll("#divisionOptions input[type='checkbox']")
+            .forEach(cb => cb.checked = false);
+
           selectedDivisions = [];
-          rebuildTeamMenuVisibility();  // show all teams
-          const btn = document.getElementById("divisionBtn");
-          labelFor(btn, "All Divisions", selectedDivisions);
+          rebuildTeamMenuVisibility();
+          labelFor(document.getElementById("divisionBtn"), "All Divisions", selectedDivisions);
           applyFilters();
         }
       });
-      document.querySelectorAll("#divisionOptions input[type='checkbox']").forEach(cb => {
-        cb.addEventListener("change", () => {
-          const checked = [...document.querySelectorAll("#divisionOptions input[type='checkbox']:checked")].map(x => x.value);
-          selectedDivisions = checked;
-          divAllCb.checked = (checked.length === 0);
 
-          rebuildTeamMenuVisibility();
-          const btn = document.getElementById("divisionBtn");
-          labelFor(btn, "All Divisions", selectedDivisions);
-          applyFilters();
+      document
+        .querySelectorAll("#divisionOptions input[type='checkbox']")
+        .forEach(cb => {
+          cb.addEventListener("change", () => {
+            selectedDivisions = [
+              ...document.querySelectorAll("#divisionOptions input[type='checkbox']:checked")
+            ].map(x => x.value);
+
+            divAllCb.checked = selectedDivisions.length === 0;
+            rebuildTeamMenuVisibility();
+            labelFor(document.getElementById("divisionBtn"), "All Divisions", selectedDivisions);
+            applyFilters();
+          });
         });
-      });
 
-      // Team menu logic
       const teamAllCb = document.getElementById("team-all");
       teamAllCb.addEventListener("change", () => {
-        const cbs = document.querySelectorAll("#teamOptions input[type='checkbox']");
         if (teamAllCb.checked) {
-          cbs.forEach(cb => cb.checked = false);
+          document
+            .querySelectorAll("#teamOptions input[type='checkbox']")
+            .forEach(cb => cb.checked = false);
+
           selectedTeams = [];
-          const btn = document.getElementById("teamBtn");
-          labelFor(btn, "All Teams", selectedTeams);
-          // When teams go back to All, leave divisions as-is (user choice),
-          // but filters still apply with current division selection.
+          labelFor(document.getElementById("teamBtn"), "All Teams", selectedTeams);
           applyFilters();
         }
       });
-      document.querySelectorAll("#teamOptions input[type='checkbox']").forEach(cb => {
-        cb.addEventListener("change", () => {
-          const checked = [...document.querySelectorAll("#teamOptions input[type='checkbox']:checked")].map(x => x.value);
-          selectedTeams = checked;
-          teamAllCb.checked = (checked.length === 0);
 
-          // Sync divisions with the union of selected teams' divisions
-          if (selectedTeams.length > 0) {
-            syncDivisionsFromSelectedTeams();
-            rebuildTeamMenuVisibility(); // re-apply visibility in case divisions shrank
-          }
-          const btn = document.getElementById("teamBtn");
-          labelFor(btn, "All Teams", selectedTeams);
-          applyFilters();
+      document
+        .querySelectorAll("#teamOptions input[type='checkbox']")
+        .forEach(cb => {
+          cb.addEventListener("change", () => {
+            selectedTeams = [
+              ...document.querySelectorAll("#teamOptions input[type='checkbox']:checked")
+            ].map(x => x.value);
+
+            teamAllCb.checked = selectedTeams.length === 0;
+
+            if (selectedTeams.length > 0) {
+              syncDivisionsFromSelectedTeams();
+              rebuildTeamMenuVisibility();
+            }
+
+            labelFor(document.getElementById("teamBtn"), "All Teams", selectedTeams);
+            applyFilters();
+          });
         });
-      });
 
-      // Simple filters
-      weekSelect.addEventListener("change", applyFilters);
+      document.getElementById("weekSelect").addEventListener("change", applyFilters);
       document.getElementById("homeAwaySelect").addEventListener("change", applyFilters);
 
       document.getElementById("resetBtn").addEventListener("click", () => {
-        weekSelect.value = "all";
+        document.getElementById("weekSelect").value = "all";
         document.getElementById("homeAwaySelect").value = "all";
 
-        // Reset divisions
         selectedDivisions = [];
         document.getElementById("div-all").checked = true;
-        document.querySelectorAll("#divisionOptions input[type='checkbox']").forEach(cb => cb.checked = false);
+        document
+          .querySelectorAll("#divisionOptions input[type='checkbox']")
+          .forEach(cb => cb.checked = false);
         labelFor(document.getElementById("divisionBtn"), "All Divisions", selectedDivisions);
 
-        // Reset teams
         selectedTeams = [];
         document.getElementById("team-all").checked = true;
-        document.querySelectorAll("#teamOptions input[type='checkbox']").forEach(cb => cb.checked = false);
+        document
+          .querySelectorAll("#teamOptions input[type='checkbox']")
+          .forEach(cb => cb.checked = false);
         labelFor(document.getElementById("teamBtn"), "All Teams", selectedTeams);
 
-        // Show all team options again
-        document.querySelectorAll("#teamOptions label").forEach(lbl => lbl.style.display = "flex");
+        document
+          .querySelectorAll("#teamOptions label")
+          .forEach(lbl => lbl.style.display = "flex");
 
         applyFilters();
       });
 
-      // Initial render
-      labelFor(document.getElementById("divisionBtn"), "All Divisions", selectedDivisions);
-      labelFor(document.getElementById("teamBtn"), "All Teams", selectedTeams);
-      applyFilters();
-
-      // Back to top
       const backToTop = document.getElementById("backToTop");
+
       window.addEventListener("scroll", () => {
         backToTop.style.display = window.scrollY > 300 ? "block" : "none";
       });
+
       backToTop.addEventListener("click", () => {
         window.scrollTo({ top: 0, behavior: "smooth" });
       });
+    }
+
+    async function init() {
+      try {
+        allGames = await fetchGames();
+
+        if (!allGames.length) {
+          setStatus(
+            `BGYFL returned no Bloomingdale games for the ${SEASON_YEAR} season yet.`,
+            "notice"
+          );
+          renderSchedule([]);
+          return;
+        }
+
+        const datedCount = allGames.filter(g => g.game_date).length;
+        const timedCount = allGames.filter(g => g.game_time).length;
+        const fieldCount = allGames.filter(g => g.field_name).length;
+        const byeCount = allGames.filter(g => String(g.status || "").toLowerCase() === "bye").length;
+
+        populateFilters();
+        wireEvents();
+
+        labelFor(document.getElementById("divisionBtn"), "All Divisions", selectedDivisions);
+        labelFor(document.getElementById("teamBtn"), "All Teams", selectedTeams);
+        applyFilters();
+
+        if (datedCount === 0) {
+          setStatus(
+            `Live BGYFL ${SEASON_YEAR} matchups are available (${allGames.length} records, including ${byeCount} byes), but dates, times, and fields are still TBD. This page will fill them in automatically when BGYFL publishes those details.`,
+            "notice"
+          );
+        } else {
+          setStatus(
+            `Live BGYFL ${SEASON_YEAR} data loaded: ${allGames.length} records. Dates published for ${datedCount}, times for ${timedCount}, and fields for ${fieldCount}.`,
+            "success"
+          );
+        }
+      } catch (err) {
+        console.error(err);
+        setStatus(
+          `Unable to load the live BGYFL ${SEASON_YEAR} schedule. Please try again later. (${err.message})`,
+          "error"
+        );
+        renderSchedule([]);
+      }
     }
 
     init();
   </script>
 </body>
 </html>
-
