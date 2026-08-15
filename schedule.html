@@ -6,8 +6,8 @@
   <title>Bloomingdale Bears BGYFL Schedule</title>
   <style>
     :root {
-      --bac-blue: #003366;
-      --bac-blue-light: #0055aa;
+      --bac-blue: #003b70;
+      --bac-blue-light: #005da8;
       --border: #d5dbe3;
       --muted: #5f6b76;
       --soft: #f5f7fa;
@@ -30,19 +30,24 @@
 
     h1 {
       color: var(--bac-blue);
-      margin-bottom: 4px;
+      margin: 0 0 4px;
     }
 
     .subtitle {
-      margin: 0 0 8px;
+      margin: 0 0 12px;
       color: var(--muted);
       font-size: 1.05rem;
     }
 
-    .disclaimer {
-      margin: 0 0 16px;
-      font-size: 0.92rem;
-      color: var(--muted);
+    .schedule-warning {
+      margin: 0 0 14px;
+      padding: 11px 13px;
+      border: 1px solid var(--notice-border);
+      border-radius: 6px;
+      background: var(--notice);
+      color: #4b430f;
+      font-size: 0.94rem;
+      line-height: 1.45;
     }
 
     #dataStatus {
@@ -51,6 +56,7 @@
       border-radius: 6px;
       border: 1px solid var(--border);
       background: var(--soft);
+      line-height: 1.4;
     }
 
     #dataStatus.notice {
@@ -69,20 +75,25 @@
     }
 
     #filters {
-      margin-bottom: 15px;
+      margin-bottom: 12px;
       display: flex;
       flex-wrap: wrap;
-      gap: 14px 18px;
+      gap: 10px 16px;
       align-items: center;
     }
 
-    #filters label { margin-right: 4px; }
+    .filter-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
 
     #filters select {
       padding: 6px;
       border: 1px solid #888;
       border-radius: 4px;
       background: white;
+      max-width: 280px;
     }
 
     .filter-dropdown {
@@ -119,7 +130,7 @@
       white-space: nowrap;
       padding: 8px;
       border-radius: 6px;
-      min-width: 300px;
+      min-width: 310px;
     }
 
     .menu label {
@@ -136,11 +147,9 @@
       margin: 6px 0;
     }
 
-    .menu input[type="checkbox"] {
-      transform: scale(1.05);
-    }
+    .menu input[type="checkbox"] { transform: scale(1.05); }
 
-    #resetBtn {
+    .action-btn {
       padding: 7px 12px;
       background: var(--bac-blue);
       color: #fff;
@@ -149,7 +158,25 @@
       cursor: pointer;
     }
 
-    #resetBtn:hover { background: var(--bac-blue-light); }
+    .action-btn:hover { background: var(--bac-blue-light); }
+
+    .secondary-btn {
+      background: #fff;
+      color: var(--bac-blue);
+      border: 1px solid var(--bac-blue);
+    }
+
+    .secondary-btn:hover {
+      background: var(--soft);
+      color: var(--bac-blue);
+    }
+
+    #copyStatus {
+      color: var(--muted);
+      font-size: 0.88rem;
+      min-height: 1.1em;
+      margin: 0 0 6px;
+    }
 
     .table-wrap {
       width: 100%;
@@ -159,8 +186,8 @@
     table {
       width: 100%;
       border-collapse: collapse;
-      margin-top: 15px;
-      min-width: 920px;
+      margin-top: 12px;
+      min-width: 1120px;
     }
 
     th, td {
@@ -198,6 +225,55 @@
       background: #fafafa;
     }
 
+    .coach-cell {
+      text-align: left;
+      min-width: 170px;
+      font-size: 0.9rem;
+      line-height: 1.35;
+    }
+
+    .field-link {
+      color: var(--bac-blue);
+      font-weight: bold;
+    }
+
+    .field-address {
+      display: block;
+      margin-top: 2px;
+      color: var(--muted);
+      font-size: 0.82rem;
+      font-weight: normal;
+    }
+
+    .historical-note {
+      font-style: italic;
+    }
+
+    .sponsor-banner {
+      margin: 20px 0 6px;
+      padding: 12px 14px;
+      border-top: 2px solid var(--bac-blue);
+      border-bottom: 1px solid var(--border);
+      background: var(--soft);
+      text-align: center;
+      line-height: 1.45;
+    }
+
+    .sponsor-banner strong { color: var(--bac-blue); }
+
+    .sponsor-subtext {
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .sponsor-banner a {
+      color: var(--bac-blue);
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+
+    .sponsor-banner a:hover { color: var(--bac-blue-light); }
+
     #backToTop {
       position: fixed;
       bottom: 20px;
@@ -214,58 +290,18 @@
 
     #backToTop:hover { background: var(--bac-blue-light); }
 
-
-    .schedule-warning {
-      margin: 0 0 16px;
-      padding: 11px 13px;
-      border: 1px solid #e2c455;
-      border-radius: 6px;
-      background: #fff8df;
-      color: #4b430f;
-      font-size: 0.94rem;
-      line-height: 1.45;
-    }
-
-    .sponsor-banner {
-      margin: 20px 0 6px;
-      padding: 12px 14px;
-      border-top: 2px solid var(--bac-blue);
-      border-bottom: 1px solid var(--border);
-      background: var(--soft);
-      text-align: center;
-      line-height: 1.45;
-    }
-
-    .sponsor-banner strong {
-      color: var(--bac-blue);
-    }
-
-    .sponsor-subtext {
-      color: var(--muted);
-      font-size: 0.9rem;
-    }
-
-    .sponsor-banner a {
-      color: var(--bac-blue);
-      text-decoration: underline;
-      text-underline-offset: 2px;
-    }
-
-    .sponsor-banner a:hover {
-      color: var(--bac-blue-light);
-    }
-
     @media (max-width: 700px) {
       body { margin: 12px; }
       h1 { font-size: 1.55rem; }
-      #filters { gap: 10px; }
+      #filters { gap: 9px; }
       .filter-btn { min-width: 160px; }
     }
   </style>
 </head>
 <body>
   <h1>Bloomingdale Bears BGYFL Schedule</h1>
-  <p class="subtitle"><span id="seasonLabel">2026</span> Season</p>
+  <p class="subtitle"><span id="seasonLabel">2026</span> Season <span id="scopeLabel">— Bloomingdale Bears</span></p>
+
   <div class="schedule-warning">
     <strong>Schedule Notice:</strong>
     This live schedule is provided as a convenience using BGYFL schedule data and may change at any time,
@@ -274,20 +310,47 @@
     information shown here.
   </div>
 
-  <div id="dataStatus">Loading live BGYFL schedule data…</div>
+  <div id="dataStatus">Loading BGYFL schedule data…</div>
 
   <div id="filters">
-    <label for="weekSelect">Week:</label>
-    <select id="weekSelect">
-      <option value="all">All Weeks</option>
-    </select>
+    <div class="filter-group">
+      <label for="seasonSelect">Season:</label>
+      <select id="seasonSelect">
+        <option value="2026">2026 — Current</option>
+        <option value="2025">2025 — Historical</option>
+      </select>
+    </div>
 
-    <label for="homeAwaySelect">Home/Away:</label>
-    <select id="homeAwaySelect">
-      <option value="all">All Games</option>
-      <option value="home">Home</option>
-      <option value="away">Away</option>
-    </select>
+    <div class="filter-group">
+      <label for="scopeSelect">Schedule:</label>
+      <select id="scopeSelect">
+        <option value="bac">Bloomingdale Bears</option>
+        <option value="league">Entire BGYFL League (Weeks 1-9)</option>
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label for="weekSelect">Week:</label>
+      <select id="weekSelect">
+        <option value="all">All Weeks</option>
+      </select>
+    </div>
+
+    <div class="filter-group" id="organizationGroup" style="display:none;">
+      <label for="organizationSelect">Organization:</label>
+      <select id="organizationSelect">
+        <option value="all">All Organizations</option>
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label for="homeAwaySelect">Home/Away:</label>
+      <select id="homeAwaySelect">
+        <option value="all">All Games</option>
+        <option value="home">Home</option>
+        <option value="away">Away</option>
+      </select>
+    </div>
 
     <div class="filter-dropdown" id="divisionDropdown">
       <button type="button" class="filter-btn" id="divisionBtn">All Divisions</button>
@@ -307,8 +370,11 @@
       </div>
     </div>
 
-    <button id="resetBtn">Reset Filters</button>
+    <button id="resetBtn" class="action-btn">Reset Filters</button>
+    <button id="copyViewBtn" class="action-btn secondary-btn">Copy / Save View</button>
   </div>
+
+  <div id="copyStatus"></div>
 
   <div class="table-wrap">
     <table id="scheduleTable">
@@ -322,6 +388,7 @@
           <th>Away Team</th>
           <th>Division</th>
           <th>Field</th>
+          <th>Head Coaches</th>
           <th>Score</th>
         </tr>
       </thead>
@@ -343,85 +410,104 @@
 
   <script>
     const DEFAULT_SEASON_YEAR = 2026;
-    const ORGANIZATION_ID = 9;
-    const ORGANIZATION_NAME = "Bloomingdale";
-
-    const params = new URLSearchParams(window.location.search);
-    const requestedYear = parseInt(params.get("year"), 10);
-    const SEASON_YEAR = Number.isInteger(requestedYear) && requestedYear >= 2025 && requestedYear <= 2100
-      ? requestedYear
-      : DEFAULT_SEASON_YEAR;
-
-    document.getElementById("seasonLabel").textContent = SEASON_YEAR;
-    document.title = `Bloomingdale Bears BGYFL Schedule - ${SEASON_YEAR}`;
-
-    const API_URL =
-      `https://slhjx7xcc1.execute-api.us-east-2.amazonaws.com/prod/api/getGames?year=${SEASON_YEAR}&organizationId=${ORGANIZATION_ID}`;
-
-    const onNetlify = () =>
-      window.location.host.endsWith(".netlify.app") ||
-      window.location.pathname.startsWith("/.netlify/");
-
-    const proxied = () =>
-      `/.netlify/functions/proxy?year=${encodeURIComponent(SEASON_YEAR)}&organizationId=${encodeURIComponent(ORGANIZATION_ID)}`;
+    const BAC_ORGANIZATION_ID = 9;
+    const BAC_ORGANIZATION_NAME = "Bloomingdale";
+    const REGULAR_SEASON_WEEKS = [1,2,3,4,5,6,7,8,9];
 
     let allGames = [];
-    let teamDivisionMap = {};
     let allDivisions = [];
-    let allTeams = [];
+    let allTeamKeys = [];
+    let teamDivisionMap = {};
     let selectedDivisions = [];
     let selectedTeams = [];
+    let loading = false;
 
-    function setStatus(message, cssClass = "") {
-      const el = document.getElementById("dataStatus");
-      el.textContent = message;
-      el.className = cssClass;
-    }
-
-    async function fetchJson(url, options = {}) {
-      const r = await fetch(url, options);
-      if (!r.ok) throw new Error(`HTTP ${r.status}`);
-      const j = await r.json();
-      if (!j || !Array.isArray(j.games)) {
-        throw new Error("Unexpected BGYFL response format");
-      }
-      return j.games;
-    }
-
-    async function fetchGames() {
-      const errors = [];
-
-      if (onNetlify()) {
-        try {
-          return await fetchJson(proxied());
-        } catch (err) {
-          errors.push(`Netlify proxy: ${err.message}`);
-        }
-      }
-
-      try {
-        return await fetchJson(API_URL, { mode: "cors" });
-      } catch (err) {
-        errors.push(`Direct API: ${err.message}`);
-      }
-
-      throw new Error(errors.join("; ") || "Unable to retrieve BGYFL schedule");
-    }
-
-    function displayValue(value, fallback = "TBD") {
-      if (value === null || value === undefined || String(value).trim() === "") {
-        return `<span class="tbd">${fallback}</span>`;
-      }
-      return escapeHtml(String(value));
-    }
+    const els = {
+      season: document.getElementById("seasonSelect"),
+      scope: document.getElementById("scopeSelect"),
+      week: document.getElementById("weekSelect"),
+      organization: document.getElementById("organizationSelect"),
+      organizationGroup: document.getElementById("organizationGroup"),
+      homeAway: document.getElementById("homeAwaySelect"),
+      divisionBtn: document.getElementById("divisionBtn"),
+      divisionMenu: document.getElementById("divisionMenu"),
+      divisionOptions: document.getElementById("divisionOptions"),
+      teamBtn: document.getElementById("teamBtn"),
+      teamMenu: document.getElementById("teamMenu"),
+      teamOptions: document.getElementById("teamOptions"),
+      status: document.getElementById("dataStatus"),
+      copyStatus: document.getElementById("copyStatus"),
+      seasonLabel: document.getElementById("seasonLabel"),
+      scopeLabel: document.getElementById("scopeLabel")
+    };
 
     function escapeHtml(value) {
-      return value
+      return String(value ?? "")
         .replaceAll("&", "&amp;")
         .replaceAll("<", "&lt;")
         .replaceAll(">", "&gt;")
         .replaceAll('"', "&quot;")
         .replaceAll("'", "&#039;");
+    }
+
+    function setStatus(message, cssClass = "") {
+      els.status.textContent = message;
+      els.status.className = cssClass;
+    }
+
+    function liveCheckedTimestamp() {
+      return `${new Intl.DateTimeFormat("en-US", {
+        timeZone: "America/Chicago",
+        month: "numeric",
+        day: "numeric",
+        year: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+        second: "2-digit",
+        hour12: true
+      }).format(new Date())} CT`;
+    }
+
+    function proxyUrl(params) {
+      const qs = new URLSearchParams(params);
+      return `/.netlify/functions/proxy?${qs.toString()}`;
+    }
+
+    async function fetchJson(url) {
+      const response = await fetch(url);
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const json = await response.json();
+      if (!json || !Array.isArray(json.games)) {
+        throw new Error(json?.error || "Unexpected BGYFL response format");
+      }
+      return json.games;
+    }
+
+    async function fetchBacGames(year) {
+      return fetchJson(proxyUrl({
+        year,
+        organizationId: BAC_ORGANIZATION_ID
+      }));
+    }
+
+    async function fetchLeagueGames(year) {
+      const results = await Promise.all(
+        REGULAR_SEASON_WEEKS.map(week =>
+          fetchJson(proxyUrl({ year, week })).catch(err => {
+            console.warn(`Week ${week} failed:`, err);
+            return [];
+          })
+        )
+      );
+
+      const byId = new Map();
+      results.flat().forEach(game => {
+        if (game && game.id !== undefined && game.id !== null) {
+          byId.set(String(game.id), game);
+        }
+      });
+
+      return [...byId.values()];
     }
 
     function getDayOfWeek(dateStr) {
@@ -442,28 +528,67 @@
       });
     }
 
+    function displayValue(value, fallback = "TBD") {
+      if (value === null || value === undefined || String(value).trim() === "") {
+        return `<span class="tbd">${escapeHtml(fallback)}</span>`;
+      }
+      return escapeHtml(value);
+    }
+
     function formatScore(game) {
-      if (game.status === "bye") return "";
-      const hs = game.home_score;
-      const as = game.away_score;
+      if (String(game.status || "").toLowerCase() === "bye") return "";
 
-      if (hs === null || hs === undefined || as === null || as === undefined) return "";
+      if (
+        game.home_score === null || game.home_score === undefined ||
+        game.away_score === null || game.away_score === undefined
+      ) return "";
 
-      const completedStatuses = new Set(["final", "completed", "complete"]);
-      if (!completedStatuses.has(String(game.status || "").toLowerCase()) && hs === 0 && as === 0) {
-        return "";
+      const completed = new Set(["final", "completed", "complete"]);
+      if (
+        !completed.has(String(game.status || "").toLowerCase()) &&
+        Number(game.home_score) === 0 &&
+        Number(game.away_score) === 0
+      ) return "";
+
+      return `${game.home_score} - ${game.away_score}`;
+    }
+
+    function coachCell(game) {
+      const home = String(game.home_head_coach || "").trim();
+      const away = String(game.away_head_coach || "").trim();
+
+      if (!home && !away) return '<span class="tbd">—</span>';
+
+      const parts = [];
+      if (home) parts.push(`<div><strong>Home:</strong> ${escapeHtml(home)}</div>`);
+      if (away) parts.push(`<div><strong>Away:</strong> ${escapeHtml(away)}</div>`);
+      return parts.join("");
+    }
+
+    function fieldCell(game) {
+      const name = String(game.field_name || "").trim();
+      const address = [game.address, game.city, game.state, game.zip]
+        .filter(v => v !== null && v !== undefined && String(v).trim() !== "")
+        .join(", ");
+
+      if (!name && !address) return '<span class="tbd">TBD</span>';
+
+      const label = escapeHtml(name || address || "View Map");
+      const addressHtml = name && address
+        ? `<span class="field-address">${escapeHtml(address)}</span>`
+        : "";
+
+      if (game.google_map_url) {
+        return `<a class="field-link" href="${escapeHtml(game.google_map_url)}" target="_blank" rel="noopener noreferrer">${label}</a>${addressHtml}`;
       }
 
-      return `${hs} - ${as}`;
+      return `${label}${addressHtml}`;
     }
 
     function groupLabel(game) {
       const week = `Week ${game.week ?? "TBD"}`;
       if (!game.game_date) return `${week} – Date/Time TBD`;
-
-      const dayName = getDayOfWeek(game.game_date);
-      const date = formatDate(game.game_date);
-      return `${week} – ${dayName} (${date})`;
+      return `${week} – ${getDayOfWeek(game.game_date)} (${formatDate(game.game_date)})`;
     }
 
     function renderSchedule(games) {
@@ -471,14 +596,11 @@
       tbody.innerHTML = "";
 
       if (!games.length) {
-        const row = document.createElement("tr");
-        row.className = "no-results";
-        row.innerHTML = `<td colspan="9">No games match the current filters.</td>`;
-        tbody.appendChild(row);
+        tbody.innerHTML = '<tr class="no-results"><td colspan="10">No games match the current filters.</td></tr>';
         return;
       }
 
-      const sortedGames = [...games].sort((a, b) => {
+      const sorted = [...games].sort((a, b) => {
         const wa = Number(a.week ?? 999);
         const wb = Number(b.week ?? 999);
         if (wa !== wb) return wa - wb;
@@ -491,19 +613,22 @@
         const tb = b.game_time || "99:99";
         if (ta !== tb) return ta.localeCompare(tb);
 
-        return String(a.division_name || "").localeCompare(String(b.division_name || ""));
+        const div = String(a.division_name || "").localeCompare(String(b.division_name || ""));
+        if (div !== 0) return div;
+
+        return String(a.home_team_name || "").localeCompare(String(b.home_team_name || ""));
       });
 
       let currentGroup = "";
 
-      sortedGames.forEach(game => {
+      sorted.forEach(game => {
         const group = groupLabel(game);
 
         if (group !== currentGroup) {
           currentGroup = group;
           const sep = document.createElement("tr");
           sep.className = "day-separator";
-          sep.innerHTML = `<td colspan="9">${escapeHtml(group)}</td>`;
+          sep.innerHTML = `<td colspan="10">${escapeHtml(group)}</td>`;
           tbody.appendChild(sep);
         }
 
@@ -511,7 +636,6 @@
         const row = document.createElement("tr");
         if (isBye) row.className = "bye-row";
 
-        const awayName = isBye ? "BYE" : displayValue(game.away_team_name);
         const status = game.status
           ? game.status.charAt(0).toUpperCase() + game.status.slice(1)
           : "Unconfirmed";
@@ -522,9 +646,10 @@
           <td>${game.game_date ? escapeHtml(getDayOfWeek(game.game_date)) : '<span class="tbd">TBD</span>'}</td>
           <td>${displayValue(game.game_time)}</td>
           <td>${displayValue(game.home_team_name)}</td>
-          <td>${awayName}</td>
+          <td>${isBye ? "BYE" : displayValue(game.away_team_name)}</td>
           <td>${displayValue(game.division_name)}</td>
-          <td>${displayValue(game.field_name)}</td>
+          <td>${fieldCell(game)}</td>
+          <td class="coach-cell">${coachCell(game)}</td>
           <td>${escapeHtml(formatScore(game))}</td>
         `;
 
@@ -536,354 +661,512 @@
       btn.textContent = arr.length === 0 ? base : `${base} (${arr.length})`;
     }
 
-    function rebuildTeamMenuVisibility() {
-      const showAllTeams = selectedDivisions.length === 0;
-      const teamOptions = document.querySelectorAll("#teamOptions input[type='checkbox']");
-
-      teamOptions.forEach(cb => {
-        const teamKey = cb.value;
-        const div = teamDivisionMap[teamKey];
-        const visible = showAllTeams || selectedDivisions.includes(div);
-        cb.closest("label").style.display = visible ? "flex" : "none";
-
-        if (!visible && selectedTeams.includes(teamKey)) {
-          cb.checked = false;
-          selectedTeams = selectedTeams.filter(t => t !== teamKey);
-        }
-      });
-
-      labelFor(document.getElementById("teamBtn"), "All Teams", selectedTeams);
-      if (selectedTeams.length === 0) {
-        document.getElementById("team-all").checked = true;
-      }
-    }
-
-    function syncDivisionsFromSelectedTeams() {
-      if (selectedTeams.length === 0) return;
-
-      const union = new Set(
-        selectedTeams.map(t => teamDivisionMap[t]).filter(Boolean)
-      );
-
-      selectedDivisions = [...union];
-
-      document.getElementById("div-all").checked = selectedDivisions.length === 0;
-      document
-        .querySelectorAll("#divisionOptions input[type='checkbox']")
-        .forEach(cb => cb.checked = selectedDivisions.includes(cb.value));
-
-      labelFor(
-        document.getElementById("divisionBtn"),
-        "All Divisions",
-        selectedDivisions
-      );
-    }
-
-    function applyFilters() {
-      const weekSelect = document.getElementById("weekSelect");
-      const homeAwaySelect = document.getElementById("homeAwaySelect");
-
-      let filtered = [...allGames];
-
-      if (weekSelect.value !== "all") {
-        filtered = filtered.filter(g => g.week === parseInt(weekSelect.value, 10));
-      }
-
-      if (homeAwaySelect.value === "home") {
-        filtered = filtered.filter(g => g.home_organization_name === ORGANIZATION_NAME);
-      } else if (homeAwaySelect.value === "away") {
-        filtered = filtered.filter(g => g.away_organization_name === ORGANIZATION_NAME);
-      }
-
-      if (selectedDivisions.length > 0) {
-        filtered = filtered.filter(g => selectedDivisions.includes(g.division_name));
-      }
-
-      if (selectedTeams.length > 0) {
-        filtered = filtered.filter(g => {
-          const homeKey = `${g.division_name} – ${g.home_team_name}`;
-          const awayKey = `${g.division_name} – ${g.away_team_name}`;
-          return selectedTeams.includes(homeKey) || selectedTeams.includes(awayKey);
-        });
-      }
-
-      renderSchedule(filtered);
-    }
-
-    function closeAllMenus(evtTarget = null) {
-      document.querySelectorAll(".menu").forEach(m => {
+    function closeAllMenus(target = null) {
+      document.querySelectorAll(".menu").forEach(menu => {
         if (
-          evtTarget &&
-          (m.contains(evtTarget) || m.previousElementSibling === evtTarget)
+          target &&
+          (menu.contains(target) || menu.previousElementSibling === target)
         ) return;
-
-        m.style.display = "none";
+        menu.style.display = "none";
       });
     }
 
-    function weekLabel(week) {
-      const datedGames = allGames.filter(
-        g => g.week === week && g.game_date
-      );
-
-      if (!datedGames.length) {
-        return `Week ${week} (dates TBD)`;
-      }
-
-      const dates = datedGames
-        .map(g => g.game_date)
-        .filter(Boolean)
-        .sort();
-
-      const startLabel = new Date(dates[0] + "T12:00:00").toLocaleDateString("en-US", {
-        month: "2-digit",
-        day: "2-digit",
-        timeZone: "America/Chicago"
-      });
-
-      const endLabel = new Date(dates[dates.length - 1] + "T12:00:00").toLocaleDateString("en-US", {
-        month: "2-digit",
-        day: "2-digit",
-        timeZone: "America/Chicago"
-      });
-
-      return startLabel === endLabel
-        ? `Week ${week} (${startLabel})`
-        : `Week ${week} (${startLabel}-${endLabel})`;
+    function currentOrganizationName() {
+      if (els.scope.value === "bac") return BAC_ORGANIZATION_NAME;
+      if (els.organization.value === "all") return null;
+      return els.organization.value;
     }
 
-    function populateFilters() {
-      const weekSelect = document.getElementById("weekSelect");
+    function teamKey(division, organization, team) {
+      return `${division || ""} — ${organization || ""} — ${team || ""}`;
+    }
+
+    function buildAvailableFilters() {
+      const priorWeek = els.week.value;
+      const priorOrg = els.organization.value;
+
+      els.week.innerHTML = '<option value="all">All Weeks</option>';
       const weeks = [...new Set(allGames.map(g => g.week).filter(v => v !== null && v !== undefined))]
         .sort((a, b) => a - b);
 
       weeks.forEach(week => {
         const opt = document.createElement("option");
-        opt.value = week;
-        opt.textContent = weekLabel(week);
-        weekSelect.appendChild(opt);
+        opt.value = String(week);
+
+        const dates = allGames
+          .filter(g => g.week === week && g.game_date)
+          .map(g => g.game_date)
+          .sort();
+
+        if (!dates.length) {
+          opt.textContent = `Week ${week} (dates TBD)`;
+        } else {
+          const fmt = d => new Date(d + "T12:00:00").toLocaleDateString("en-US", {
+            month: "2-digit",
+            day: "2-digit",
+            timeZone: "America/Chicago"
+          });
+          const first = fmt(dates[0]);
+          const last = fmt(dates[dates.length - 1]);
+          opt.textContent = first === last
+            ? `Week ${week} (${first})`
+            : `Week ${week} (${first}-${last})`;
+        }
+        els.week.appendChild(opt);
       });
 
-      const divSet = new Set(allGames.map(g => g.division_name).filter(Boolean));
-      allDivisions = [...divSet].sort();
+      if ([...els.week.options].some(o => o.value === priorWeek)) {
+        els.week.value = priorWeek;
+      }
 
-      const teamsSet = new Set();
+      els.organization.innerHTML = '<option value="all">All Organizations</option>';
+      const orgs = [...new Set(
+        allGames.flatMap(g => [g.home_organization_name, g.away_organization_name]).filter(Boolean)
+      )].sort();
 
-      allGames.forEach(g => {
-        if (g.home_organization_name === ORGANIZATION_NAME && g.home_team_name) {
-          const key = `${g.division_name} – ${g.home_team_name}`;
-          teamsSet.add(key);
-          teamDivisionMap[key] = g.division_name;
-        }
-
-        if (g.away_organization_name === ORGANIZATION_NAME && g.away_team_name) {
-          const key = `${g.division_name} – ${g.away_team_name}`;
-          teamsSet.add(key);
-          teamDivisionMap[key] = g.division_name;
-        }
+      orgs.forEach(org => {
+        const opt = document.createElement("option");
+        opt.value = org;
+        opt.textContent = org;
+        els.organization.appendChild(opt);
       });
 
-      allTeams = [...teamsSet].sort();
+      if ([...els.organization.options].some(o => o.value === priorOrg)) {
+        els.organization.value = priorOrg;
+      }
 
-      const divisionOptions = document.getElementById("divisionOptions");
-      divisionOptions.innerHTML = "";
+      allDivisions = [...new Set(allGames.map(g => g.division_name).filter(Boolean))].sort();
 
+      els.divisionOptions.innerHTML = "";
       allDivisions.forEach(d => {
         const id = "div-" + d.replace(/\W+/g, "_");
-        const lbl = document.createElement("label");
-        lbl.innerHTML = `<input type="checkbox" id="${id}" value="${escapeHtml(d)}"> ${escapeHtml(d)}`;
-        divisionOptions.appendChild(lbl);
+        const label = document.createElement("label");
+        label.innerHTML = `<input type="checkbox" id="${id}" value="${escapeHtml(d)}"> ${escapeHtml(d)}`;
+        els.divisionOptions.appendChild(label);
       });
 
-      const teamOptions = document.getElementById("teamOptions");
-      teamOptions.innerHTML = "";
+      rebuildTeamOptions();
+      wireDynamicCheckboxes();
+    }
 
-      allTeams.forEach(t => {
-        const id = "team-" + t.replace(/\W+/g, "_");
-        const lbl = document.createElement("label");
-        lbl.innerHTML = `<input type="checkbox" id="${id}" value="${escapeHtml(t)}"> ${escapeHtml(t)}`;
-        teamOptions.appendChild(lbl);
+    function rebuildTeamOptions() {
+      const orgFilter = currentOrganizationName();
+      teamDivisionMap = {};
+      const teamSet = new Set();
+
+      allGames.forEach(g => {
+        if (g.home_team_name && (!orgFilter || g.home_organization_name === orgFilter)) {
+          const key = teamKey(g.division_name, g.home_organization_name, g.home_team_name);
+          teamSet.add(key);
+          teamDivisionMap[key] = g.division_name;
+        }
+        if (g.away_team_name && (!orgFilter || g.away_organization_name === orgFilter)) {
+          const key = teamKey(g.division_name, g.away_organization_name, g.away_team_name);
+          teamSet.add(key);
+          teamDivisionMap[key] = g.division_name;
+        }
+      });
+
+      allTeamKeys = [...teamSet].sort((a, b) => a.localeCompare(b));
+
+      selectedTeams = selectedTeams.filter(t => allTeamKeys.includes(t));
+
+      els.teamOptions.innerHTML = "";
+      allTeamKeys.forEach(key => {
+        const id = "team-" + key.replace(/\W+/g, "_");
+        const [, org, team] = key.split(" — ");
+        const label = document.createElement("label");
+        label.innerHTML =
+          `<input type="checkbox" id="${id}" value="${escapeHtml(key)}"> ${escapeHtml(team)}${els.scope.value === "league" ? ` <span class="tbd">(${escapeHtml(org)})</span>` : ""}`;
+        els.teamOptions.appendChild(label);
+      });
+
+      labelFor(els.teamBtn, "All Teams", selectedTeams);
+      document.getElementById("team-all").checked = selectedTeams.length === 0;
+
+      document.querySelectorAll("#teamOptions input[type='checkbox']").forEach(cb => {
+        cb.checked = selectedTeams.includes(cb.value);
       });
     }
 
-    function wireEvents() {
-      document.getElementById("divisionBtn").addEventListener("click", e => {
-        const menu = document.getElementById("divisionMenu");
-        closeAllMenus(e.target);
-        menu.style.display = menu.style.display === "block" ? "none" : "block";
+    function rebuildTeamMenuVisibility() {
+      const showAll = selectedDivisions.length === 0;
+
+      document.querySelectorAll("#teamOptions input[type='checkbox']").forEach(cb => {
+        const visible = showAll || selectedDivisions.includes(teamDivisionMap[cb.value]);
+        cb.closest("label").style.display = visible ? "flex" : "none";
+
+        if (!visible && selectedTeams.includes(cb.value)) {
+          cb.checked = false;
+          selectedTeams = selectedTeams.filter(t => t !== cb.value);
+        }
       });
 
-      document.getElementById("teamBtn").addEventListener("click", e => {
-        const menu = document.getElementById("teamMenu");
+      document.getElementById("team-all").checked = selectedTeams.length === 0;
+      labelFor(els.teamBtn, "All Teams", selectedTeams);
+    }
+
+    function syncDivisionsFromTeams() {
+      if (!selectedTeams.length) return;
+
+      selectedDivisions = [...new Set(
+        selectedTeams.map(t => teamDivisionMap[t]).filter(Boolean)
+      )];
+
+      document.getElementById("div-all").checked = selectedDivisions.length === 0;
+      document.querySelectorAll("#divisionOptions input[type='checkbox']").forEach(cb => {
+        cb.checked = selectedDivisions.includes(cb.value);
+      });
+
+      labelFor(els.divisionBtn, "All Divisions", selectedDivisions);
+    }
+
+    function gameMatchesSelectedTeam(g) {
+      if (!selectedTeams.length) return true;
+
+      const homeKey = teamKey(g.division_name, g.home_organization_name, g.home_team_name);
+      const awayKey = teamKey(g.division_name, g.away_organization_name, g.away_team_name);
+      return selectedTeams.includes(homeKey) || selectedTeams.includes(awayKey);
+    }
+
+    function applyFilters({ updateUrl = true } = {}) {
+      let filtered = [...allGames];
+
+      if (els.week.value !== "all") {
+        filtered = filtered.filter(g => String(g.week) === els.week.value);
+      }
+
+      const orgName = currentOrganizationName();
+
+      if (orgName) {
+        filtered = filtered.filter(g =>
+          g.home_organization_name === orgName ||
+          g.away_organization_name === orgName
+        );
+
+        if (els.homeAway.value === "home") {
+          filtered = filtered.filter(g => g.home_organization_name === orgName);
+        } else if (els.homeAway.value === "away") {
+          filtered = filtered.filter(g => g.away_organization_name === orgName);
+        }
+      }
+
+      if (selectedDivisions.length) {
+        filtered = filtered.filter(g => selectedDivisions.includes(g.division_name));
+      }
+
+      filtered = filtered.filter(gameMatchesSelectedTeam);
+
+      renderSchedule(filtered);
+
+      if (updateUrl) replaceUrlFromState();
+    }
+
+    function buildStateUrl() {
+      const url = new URL(window.location.href);
+      url.pathname = "/schedule.html";
+      url.search = "";
+
+      url.searchParams.set("year", els.season.value);
+      url.searchParams.set("scope", els.scope.value);
+
+      if (els.week.value !== "all") url.searchParams.set("week", els.week.value);
+
+      if (els.scope.value === "league" && els.organization.value !== "all") {
+        url.searchParams.set("organization", els.organization.value);
+      }
+
+      if (els.homeAway.value !== "all") {
+        url.searchParams.set("homeAway", els.homeAway.value);
+      }
+
+      selectedDivisions.forEach(d => url.searchParams.append("division", d));
+      selectedTeams.forEach(t => url.searchParams.append("team", t));
+
+      return url;
+    }
+
+    function replaceUrlFromState() {
+      const url = buildStateUrl();
+      history.replaceState(null, "", url.pathname + url.search + url.hash);
+    }
+
+    function readInitialState() {
+      const params = new URLSearchParams(window.location.search);
+
+      const year = params.get("year");
+      if ([...els.season.options].some(o => o.value === year)) {
+        els.season.value = year;
+      }
+
+      const scope = params.get("scope");
+      if (scope === "league" || scope === "bac") els.scope.value = scope;
+
+      return {
+        week: params.get("week"),
+        organization: params.get("organization"),
+        homeAway: params.get("homeAway"),
+        divisions: params.getAll("division"),
+        teams: params.getAll("team")
+      };
+    }
+
+    function restoreFilterState(state) {
+      if (state.week && [...els.week.options].some(o => o.value === state.week)) {
+        els.week.value = state.week;
+      }
+
+      if (
+        state.organization &&
+        [...els.organization.options].some(o => o.value === state.organization)
+      ) {
+        els.organization.value = state.organization;
+        rebuildTeamOptions();
+        wireDynamicCheckboxes();
+      }
+
+      if (["home", "away", "all"].includes(state.homeAway)) {
+        els.homeAway.value = state.homeAway;
+      }
+
+      selectedDivisions = state.divisions.filter(d => allDivisions.includes(d));
+      document.getElementById("div-all").checked = selectedDivisions.length === 0;
+      document.querySelectorAll("#divisionOptions input[type='checkbox']").forEach(cb => {
+        cb.checked = selectedDivisions.includes(cb.value);
+      });
+      labelFor(els.divisionBtn, "All Divisions", selectedDivisions);
+
+      selectedTeams = state.teams.filter(t => allTeamKeys.includes(t));
+      document.getElementById("team-all").checked = selectedTeams.length === 0;
+      document.querySelectorAll("#teamOptions input[type='checkbox']").forEach(cb => {
+        cb.checked = selectedTeams.includes(cb.value);
+      });
+      labelFor(els.teamBtn, "All Teams", selectedTeams);
+      rebuildTeamMenuVisibility();
+    }
+
+    function wireDynamicCheckboxes() {
+      document.querySelectorAll("#divisionOptions input[type='checkbox']").forEach(cb => {
+        cb.addEventListener("change", () => {
+          selectedDivisions = [
+            ...document.querySelectorAll("#divisionOptions input[type='checkbox']:checked")
+          ].map(x => x.value);
+
+          document.getElementById("div-all").checked = selectedDivisions.length === 0;
+          labelFor(els.divisionBtn, "All Divisions", selectedDivisions);
+          rebuildTeamMenuVisibility();
+          applyFilters();
+        });
+      });
+
+      document.querySelectorAll("#teamOptions input[type='checkbox']").forEach(cb => {
+        cb.addEventListener("change", () => {
+          selectedTeams = [
+            ...document.querySelectorAll("#teamOptions input[type='checkbox']:checked")
+          ].map(x => x.value);
+
+          document.getElementById("team-all").checked = selectedTeams.length === 0;
+
+          if (selectedTeams.length) {
+            syncDivisionsFromTeams();
+            rebuildTeamMenuVisibility();
+          }
+
+          labelFor(els.teamBtn, "All Teams", selectedTeams);
+          applyFilters();
+        });
+      });
+    }
+
+    function resetFilters() {
+      els.week.value = "all";
+      els.homeAway.value = "all";
+      els.organization.value = "all";
+
+      selectedDivisions = [];
+      selectedTeams = [];
+
+      document.getElementById("div-all").checked = true;
+      document.querySelectorAll("#divisionOptions input[type='checkbox']").forEach(cb => cb.checked = false);
+      labelFor(els.divisionBtn, "All Divisions", []);
+
+      rebuildTeamOptions();
+      document.getElementById("team-all").checked = true;
+      labelFor(els.teamBtn, "All Teams", []);
+
+      applyFilters();
+    }
+
+    function updateModeUi() {
+      const league = els.scope.value === "league";
+      els.organizationGroup.style.display = league ? "flex" : "none";
+      els.seasonLabel.textContent = els.season.value;
+      els.scopeLabel.textContent = league ? "— Entire BGYFL League, Weeks 1-9" : "— Bloomingdale Bears";
+      document.title = `BGYFL Schedule - ${els.season.value}${league ? " League-wide" : " Bloomingdale"}`;
+
+      if (league && els.organization.value === "all") {
+        els.homeAway.value = "all";
+        els.homeAway.disabled = true;
+        els.homeAway.title = "Choose an organization to filter league games by home/away.";
+      } else {
+        els.homeAway.disabled = false;
+        els.homeAway.title = "";
+      }
+    }
+
+    function updateDataStatus() {
+      const year = els.season.value;
+      const scopeText = els.scope.value === "league" ? "BGYFL league-wide regular-season (Weeks 1-9)" : "Bloomingdale";
+      const dated = allGames.filter(g => g.game_date).length;
+      const timed = allGames.filter(g => g.game_time).length;
+      const fields = allGames.filter(g => g.field_name || g.address).length;
+      const coaches = allGames.filter(g =>
+        String(g.home_head_coach || "").trim() ||
+        String(g.away_head_coach || "").trim()
+      ).length;
+      const byes = allGames.filter(g => String(g.status || "").toLowerCase() === "bye").length;
+
+      if (!allGames.length) {
+        setStatus(
+          `BGYFL returned no ${scopeText} games for ${year}. Live data checked: ${liveCheckedTimestamp()}.`,
+          "notice"
+        );
+        return;
+      }
+
+      if (dated === 0) {
+        setStatus(
+          `${year} ${scopeText} matchups loaded (${allGames.length} records, including ${byes} byes), but dates, times, and fields are still TBD. Coach names will also appear automatically if BGYFL publishes them. Live data checked: ${liveCheckedTimestamp()}.`,
+          "notice"
+        );
+      } else {
+        const historical = Number(year) < DEFAULT_SEASON_YEAR ? " Historical data is shown for reference." : "";
+        setStatus(
+          `${year} ${scopeText} data loaded: ${allGames.length} records; dates on ${dated}, times on ${timed}, fields/addresses on ${fields}, and head-coach names on ${coaches}. Live data checked: ${liveCheckedTimestamp()}.${historical}`,
+          "success"
+        );
+      }
+    }
+
+    async function loadData({ restoreState = null } = {}) {
+      if (loading) return;
+      loading = true;
+
+      setStatus("Loading BGYFL schedule data…");
+      els.copyStatus.textContent = "";
+
+      updateModeUi();
+
+      try {
+        allGames = els.scope.value === "league"
+          ? await fetchLeagueGames(els.season.value)
+          : await fetchBacGames(els.season.value);
+
+        selectedDivisions = [];
+        selectedTeams = [];
+        buildAvailableFilters();
+
+        if (restoreState) restoreFilterState(restoreState);
+
+        updateModeUi();
+        updateDataStatus();
+        applyFilters({ updateUrl: !restoreState });
+      } catch (err) {
+        console.error(err);
+        allGames = [];
+        setStatus(
+          `Unable to load BGYFL ${els.season.value} schedule data. Please try again later. (${err.message})`,
+          "error"
+        );
+        renderSchedule([]);
+      } finally {
+        loading = false;
+      }
+    }
+
+    async function copyCurrentView() {
+      const url = buildStateUrl();
+      const full = url.toString();
+
+      replaceUrlFromState();
+
+      try {
+        await navigator.clipboard.writeText(full);
+        els.copyStatus.textContent = "View link copied. Bookmark this URL to save the same filters.";
+      } catch {
+        els.copyStatus.innerHTML =
+          `Bookmark this URL to save the view: <a href="${escapeHtml(full)}">${escapeHtml(full)}</a>`;
+      }
+    }
+
+    function wireStaticEvents() {
+      els.divisionBtn.addEventListener("click", e => {
         closeAllMenus(e.target);
-        menu.style.display = menu.style.display === "block" ? "none" : "block";
+        els.divisionMenu.style.display =
+          els.divisionMenu.style.display === "block" ? "none" : "block";
+      });
+
+      els.teamBtn.addEventListener("click", e => {
+        closeAllMenus(e.target);
+        els.teamMenu.style.display =
+          els.teamMenu.style.display === "block" ? "none" : "block";
       });
 
       document.addEventListener("click", e => {
         if (!e.target.closest(".filter-dropdown")) closeAllMenus();
       });
 
-      const divAllCb = document.getElementById("div-all");
-      divAllCb.addEventListener("change", () => {
-        if (divAllCb.checked) {
-          document
-            .querySelectorAll("#divisionOptions input[type='checkbox']")
-            .forEach(cb => cb.checked = false);
-
-          selectedDivisions = [];
-          rebuildTeamMenuVisibility();
-          labelFor(document.getElementById("divisionBtn"), "All Divisions", selectedDivisions);
-          applyFilters();
-        }
-      });
-
-      document
-        .querySelectorAll("#divisionOptions input[type='checkbox']")
-        .forEach(cb => {
-          cb.addEventListener("change", () => {
-            selectedDivisions = [
-              ...document.querySelectorAll("#divisionOptions input[type='checkbox']:checked")
-            ].map(x => x.value);
-
-            divAllCb.checked = selectedDivisions.length === 0;
-            rebuildTeamMenuVisibility();
-            labelFor(document.getElementById("divisionBtn"), "All Divisions", selectedDivisions);
-            applyFilters();
-          });
-        });
-
-      const teamAllCb = document.getElementById("team-all");
-      teamAllCb.addEventListener("change", () => {
-        if (teamAllCb.checked) {
-          document
-            .querySelectorAll("#teamOptions input[type='checkbox']")
-            .forEach(cb => cb.checked = false);
-
-          selectedTeams = [];
-          labelFor(document.getElementById("teamBtn"), "All Teams", selectedTeams);
-          applyFilters();
-        }
-      });
-
-      document
-        .querySelectorAll("#teamOptions input[type='checkbox']")
-        .forEach(cb => {
-          cb.addEventListener("change", () => {
-            selectedTeams = [
-              ...document.querySelectorAll("#teamOptions input[type='checkbox']:checked")
-            ].map(x => x.value);
-
-            teamAllCb.checked = selectedTeams.length === 0;
-
-            if (selectedTeams.length > 0) {
-              syncDivisionsFromSelectedTeams();
-              rebuildTeamMenuVisibility();
-            }
-
-            labelFor(document.getElementById("teamBtn"), "All Teams", selectedTeams);
-            applyFilters();
-          });
-        });
-
-      document.getElementById("weekSelect").addEventListener("change", applyFilters);
-      document.getElementById("homeAwaySelect").addEventListener("change", applyFilters);
-
-      document.getElementById("resetBtn").addEventListener("click", () => {
-        document.getElementById("weekSelect").value = "all";
-        document.getElementById("homeAwaySelect").value = "all";
-
+      document.getElementById("div-all").addEventListener("change", e => {
+        if (!e.target.checked) return;
         selectedDivisions = [];
-        document.getElementById("div-all").checked = true;
-        document
-          .querySelectorAll("#divisionOptions input[type='checkbox']")
-          .forEach(cb => cb.checked = false);
-        labelFor(document.getElementById("divisionBtn"), "All Divisions", selectedDivisions);
-
-        selectedTeams = [];
-        document.getElementById("team-all").checked = true;
-        document
-          .querySelectorAll("#teamOptions input[type='checkbox']")
-          .forEach(cb => cb.checked = false);
-        labelFor(document.getElementById("teamBtn"), "All Teams", selectedTeams);
-
-        document
-          .querySelectorAll("#teamOptions label")
-          .forEach(lbl => lbl.style.display = "flex");
-
+        document.querySelectorAll("#divisionOptions input[type='checkbox']").forEach(cb => cb.checked = false);
+        labelFor(els.divisionBtn, "All Divisions", []);
+        rebuildTeamMenuVisibility();
         applyFilters();
       });
 
-      const backToTop = document.getElementById("backToTop");
+      document.getElementById("team-all").addEventListener("change", e => {
+        if (!e.target.checked) return;
+        selectedTeams = [];
+        document.querySelectorAll("#teamOptions input[type='checkbox']").forEach(cb => cb.checked = false);
+        labelFor(els.teamBtn, "All Teams", []);
+        applyFilters();
+      });
 
+      els.season.addEventListener("change", () => loadData());
+      els.scope.addEventListener("change", () => {
+        els.organization.value = "all";
+        loadData();
+      });
+
+      els.week.addEventListener("change", () => applyFilters());
+
+      els.organization.addEventListener("change", () => {
+        selectedTeams = [];
+        rebuildTeamOptions();
+        wireDynamicCheckboxes();
+        updateModeUi();
+        applyFilters();
+      });
+
+      els.homeAway.addEventListener("change", () => applyFilters());
+
+      document.getElementById("resetBtn").addEventListener("click", resetFilters);
+      document.getElementById("copyViewBtn").addEventListener("click", copyCurrentView);
+
+      const backToTop = document.getElementById("backToTop");
       window.addEventListener("scroll", () => {
         backToTop.style.display = window.scrollY > 300 ? "block" : "none";
       });
-
       backToTop.addEventListener("click", () => {
         window.scrollTo({ top: 0, behavior: "smooth" });
       });
     }
 
-
-    function liveCheckedTimestamp() {
-      const parts = new Intl.DateTimeFormat("en-US", {
-        timeZone: "America/Chicago",
-        month: "numeric",
-        day: "numeric",
-        year: "numeric",
-        hour: "numeric",
-        minute: "2-digit",
-        second: "2-digit",
-        hour12: true
-      }).format(new Date());
-
-      return `${parts} CT`;
-    }
-
     async function init() {
-      try {
-        allGames = await fetchGames();
-
-        if (!allGames.length) {
-          setStatus(
-            `BGYFL returned no Bloomingdale games for the ${SEASON_YEAR} season yet. Live data checked: ${liveCheckedTimestamp()}.`,
-            "notice"
-          );
-          renderSchedule([]);
-          return;
-        }
-
-        const datedCount = allGames.filter(g => g.game_date).length;
-        const timedCount = allGames.filter(g => g.game_time).length;
-        const fieldCount = allGames.filter(g => g.field_name).length;
-        const byeCount = allGames.filter(g => String(g.status || "").toLowerCase() === "bye").length;
-
-        populateFilters();
-        wireEvents();
-
-        labelFor(document.getElementById("divisionBtn"), "All Divisions", selectedDivisions);
-        labelFor(document.getElementById("teamBtn"), "All Teams", selectedTeams);
-        applyFilters();
-
-        if (datedCount === 0) {
-          setStatus(
-            `Live BGYFL ${SEASON_YEAR} matchups are available (${allGames.length} records, including ${byeCount} byes), but dates, times, and fields are still TBD. This page will fill them in automatically when BGYFL publishes those details. Live data checked: ${liveCheckedTimestamp()}.`,
-            "notice"
-          );
-        } else {
-          setStatus(
-            `Live BGYFL ${SEASON_YEAR} data loaded: ${allGames.length} records. Dates published for ${datedCount}, times for ${timedCount}, and fields for ${fieldCount}. Live data checked: ${liveCheckedTimestamp()}.`,
-            "success"
-          );
-        }
-      } catch (err) {
-        console.error(err);
-        setStatus(
-          `Unable to load the live BGYFL ${SEASON_YEAR} schedule. Please try again later. (${err.message})`,
-          "error"
-        );
-        renderSchedule([]);
-      }
+      const initialState = readInitialState();
+      wireStaticEvents();
+      await loadData({ restoreState: initialState });
     }
 
     init();
