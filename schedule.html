@@ -214,6 +214,47 @@
 
     #backToTop:hover { background: var(--bac-blue-light); }
 
+
+    .schedule-warning {
+      margin: 0 0 16px;
+      padding: 11px 13px;
+      border: 1px solid #e2c455;
+      border-radius: 6px;
+      background: #fff8df;
+      color: #4b430f;
+      font-size: 0.94rem;
+      line-height: 1.45;
+    }
+
+    .sponsor-banner {
+      margin: 20px 0 6px;
+      padding: 12px 14px;
+      border-top: 2px solid var(--bac-blue);
+      border-bottom: 1px solid var(--border);
+      background: var(--soft);
+      text-align: center;
+      line-height: 1.45;
+    }
+
+    .sponsor-banner strong {
+      color: var(--bac-blue);
+    }
+
+    .sponsor-subtext {
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .sponsor-banner a {
+      color: var(--bac-blue);
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+
+    .sponsor-banner a:hover {
+      color: var(--bac-blue-light);
+    }
+
     @media (max-width: 700px) {
       body { margin: 12px; }
       h1 { font-size: 1.55rem; }
@@ -225,7 +266,13 @@
 <body>
   <h1>Bloomingdale Bears BGYFL Schedule</h1>
   <p class="subtitle"><span id="seasonLabel">2026</span> Season</p>
-  <p class="disclaimer">Schedule data is provided by BGYFL. Please confirm game details with your coach or BAC before traveling.</p>
+  <div class="schedule-warning">
+    <strong>Schedule Notice:</strong>
+    This live schedule is provided as a convenience using BGYFL schedule data and may change at any time,
+    including on or before game day. Players, parents, coaches, and spectators should always confirm the
+    game date, time, location, and opponent with their team coach or BAC before traveling or relying on the
+    information shown here.
+  </div>
 
   <div id="dataStatus">Loading live BGYFL schedule data…</div>
 
@@ -280,6 +327,16 @@
       </thead>
       <tbody></tbody>
     </table>
+  </div>
+
+  <div class="sponsor-banner">
+    <strong>
+      Live Schedule Powered by
+      <a href="https://vultnetworks.com" target="_blank" rel="noopener noreferrer">Vult Networks, LLC</a>
+    </strong><br>
+    <span class="sponsor-subtext">
+      Built and sponsored by Vult Networks to help Bloomingdale Bears families quickly access live BGYFL schedule information.
+    </span>
   </div>
 
   <button id="backToTop">Back to Top</button>
@@ -767,13 +824,29 @@
       });
     }
 
+
+    function liveCheckedTimestamp() {
+      const parts = new Intl.DateTimeFormat("en-US", {
+        timeZone: "America/Chicago",
+        month: "numeric",
+        day: "numeric",
+        year: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+        second: "2-digit",
+        hour12: true
+      }).format(new Date());
+
+      return `${parts} CT`;
+    }
+
     async function init() {
       try {
         allGames = await fetchGames();
 
         if (!allGames.length) {
           setStatus(
-            `BGYFL returned no Bloomingdale games for the ${SEASON_YEAR} season yet.`,
+            `BGYFL returned no Bloomingdale games for the ${SEASON_YEAR} season yet. Live data checked: ${liveCheckedTimestamp()}.`,
             "notice"
           );
           renderSchedule([]);
@@ -794,12 +867,12 @@
 
         if (datedCount === 0) {
           setStatus(
-            `Live BGYFL ${SEASON_YEAR} matchups are available (${allGames.length} records, including ${byeCount} byes), but dates, times, and fields are still TBD. This page will fill them in automatically when BGYFL publishes those details.`,
+            `Live BGYFL ${SEASON_YEAR} matchups are available (${allGames.length} records, including ${byeCount} byes), but dates, times, and fields are still TBD. This page will fill them in automatically when BGYFL publishes those details. Live data checked: ${liveCheckedTimestamp()}.`,
             "notice"
           );
         } else {
           setStatus(
-            `Live BGYFL ${SEASON_YEAR} data loaded: ${allGames.length} records. Dates published for ${datedCount}, times for ${timedCount}, and fields for ${fieldCount}.`,
+            `Live BGYFL ${SEASON_YEAR} data loaded: ${allGames.length} records. Dates published for ${datedCount}, times for ${timedCount}, and fields for ${fieldCount}. Live data checked: ${liveCheckedTimestamp()}.`,
             "success"
           );
         }
