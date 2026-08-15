@@ -1,28 +1,63 @@
 export async function handler(event) {
-  const year = Number.parseInt(event.queryStringParameters?.year, 10);
-  const organizationId = Number.parseInt(event.queryStringParameters?.organizationId, 10);
+  const params = event.queryStringParameters || {};
 
-  if (!Number.isInteger(year) || year < 2025 || year > 2100) {
-    return {
-      statusCode: 400,
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ error: "Invalid year" })
-    };
+  const year = Number.parseInt(params.year, 10);
+  if (!Number.isInteger(year) || year < 2020 || year > 2100) {
+    return jsonResponse(400, { error: "Invalid year" });
   }
 
-  if (!Number.isInteger(organizationId) || organizationId < 1) {
-    return {
-      statusCode: 400,
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ error: "Invalid organizationId" })
-    };
+  const target = new URL(
+    "https://slhjx7xcc1.execute-api.us-east-2.amazonaws.com/prod/api/getGames"
+  );
+
+  target.searchParams.set("year", String(year));
+
+  let hasScope = false;
+
+  if (params.organizationId !== undefined) {
+    const organizationId = Number.parseInt(params.organizationId, 10);
+    if (!Number.isInteger(organizationId) || organizationId < 1 || organizationId > 100000) {
+      return jsonResponse(400, { error: "Invalid organizationId" });
+    }
+    target.searchParams.set("organizationId", String(organizationId));
+    hasScope = true;
   }
 
-  const target =
-    `https://slhjx7xcc1.execute-api.us-east-2.amazonaws.com/prod/api/getGames?year=${encodeURIComponent(year)}&organizationId=${encodeURIComponent(organizationId)}`;
+  if (params.week !== undefined) {
+    const week = Number.parseInt(params.week, 10);
+    if (!Number.isInteger(week) || week < 1 || week > 30) {
+      return jsonResponse(400, { error: "Invalid week" });
+    }
+    target.searchParams.set("week", String(week));
+    hasScope = true;
+  }
+
+  if (params.teamId !== undefined) {
+    const teamId = Number.parseInt(params.teamId, 10);
+    if (!Number.isInteger(teamId) || teamId < 1 || teamId > 10000000) {
+      return jsonResponse(400, { error: "Invalid teamId" });
+    }
+    target.searchParams.set("teamId", String(teamId));
+    hasScope = true;
+  }
+
+  if (params.divisionId !== undefined) {
+    const divisionId = String(params.divisionId).trim();
+    if (!/^[A-Za-z0-9_-]{1,80}$/.test(divisionId)) {
+      return jsonResponse(400, { error: "Invalid divisionId" });
+    }
+    target.searchParams.set("divisionId", divisionId);
+    hasScope = true;
+  }
+
+  if (!hasScope) {
+    return jsonResponse(400, {
+      error: "At least one of organizationId, week, teamId, or divisionId is required"
+    });
+  }
 
   try {
-    const response = await fetch(target, {
+    const response = await fetch(target.toString(), {
       headers: {
         "accept": "application/json, text/plain, */*",
         "user-agent": "Mozilla/5.0",
@@ -31,7 +66,7 @@ export async function handler(event) {
       }
     });
 
-    const text = await response.text();
+    const body = await response.text();
 
     return {
       statusCode: response.status,
@@ -40,13 +75,23 @@ export async function handler(event) {
         "Access-Control-Allow-Origin": "*",
         "Cache-Control": "public, max-age=300"
       },
-      body: text
+      body
     };
   } catch (err) {
-    return {
-      statusCode: 502,
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ error: "BGYFL request failed", detail: err.message })
-    };
+    return jsonResponse(502, {
+      error: "BGYFL request failed",
+      detail: err.message
+    });
   }
+}
+
+function jsonResponse(statusCode, payload) {
+  return {
+    statusCode,
+    headers: {
+      "Content-Type": "application/json",
+      "Access-Control-Allow-Origin": "*"
+    },
+    body: JSON.stringify(payload)
+  };
 }
