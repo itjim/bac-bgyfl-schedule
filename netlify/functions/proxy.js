@@ -7,7 +7,7 @@ export async function handler(event) {
   }
 
   const target = new URL(
-    "https://slhjx7xcc1.execute-api.us-east-2.amazonaws.com/prod/api/getGames"
+    "https://slhjx7xcc1.execute-api.us-east-2.amazonaws.com/prod/public/api/getGames"
   );
 
   target.searchParams.set("year", String(year));
@@ -61,8 +61,8 @@ export async function handler(event) {
       headers: {
         "accept": "application/json, text/plain, */*",
         "user-agent": "Mozilla/5.0",
-        "origin": "http://bgyfl-website-new-prod.s3-website.us-east-2.amazonaws.com",
-        "referer": "http://bgyfl-website-new-prod.s3-website.us-east-2.amazonaws.com/"
+        "origin": "https://www.bgyfl.org",
+        "referer": "https://www.bgyfl.org/"
       }
     });
 
