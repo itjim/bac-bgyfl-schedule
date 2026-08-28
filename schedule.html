@@ -1015,39 +1015,53 @@
     }
 
     function updateDataStatus() {
-      const year = els.season.value;
-      const scopeText = els.scope.value === "league" ? "BGYFL league-wide regular-season (Weeks 1-9)" : "Bloomingdale";
-      const dated = allGames.filter(g => g.game_date).length;
-      const timed = allGames.filter(g => g.game_time).length;
-      const fields = allGames.filter(g => g.field_name || g.address).length;
-      const coaches = allGames.filter(g =>
-        String(g.home_head_coach || "").trim() ||
-        String(g.away_head_coach || "").trim()
-      ).length;
-      const byes = allGames.filter(g => String(g.status || "").toLowerCase() === "bye").length;
+  const year = els.season.value;
+  const scopeText = els.scope.value === "league"
+    ? "BGYFL league-wide regular-season (Weeks 1-9)"
+    : "Bloomingdale";
 
-      if (!allGames.length) {
-        setStatus(
-          `BGYFL returned no ${scopeText} games for ${year}. Live data checked: ${liveCheckedTimestamp()}.`,
-          "notice"
-        );
-        return;
-      }
+  const dated = allGames.filter(g => g.game_date).length;
+  const timed = allGames.filter(g => g.game_time).length;
+  const fields = allGames.filter(g => g.field_name || g.address).length;
+  const byes = allGames.filter(
+    g => String(g.status || "").toLowerCase() === "bye"
+  ).length;
 
-      if (dated === 0) {
-        setStatus(
-          `${year} ${scopeText} matchups loaded (${allGames.length} records, including ${byes} byes), but dates, times, and fields are still TBD. Coach names will also appear automatically if BGYFL publishes them. Live data checked: ${liveCheckedTimestamp()}.`,
-          "notice"
-        );
-      } else {
-        const historical = Number(year) < DEFAULT_SEASON_YEAR ? " Historical data is shown for reference." : "";
-        setStatus(
-          `${year} ${scopeText} data loaded: ${allGames.length} records; dates on ${dated}, times on ${timed}, fields/addresses on ${fields}, and head-coach names on ${coaches}. Live data checked: ${liveCheckedTimestamp()}.${historical}`,
-          "success"
-        );
-      }
-    }
+  if (!allGames.length) {
+    setStatus(
+      `BGYFL returned no ${scopeText} games for ${year}. Live data checked: ${liveCheckedTimestamp()}.`,
+      "notice"
+    );
+    return;
+  }
 
+  if (dated === 0) {
+    setStatus(
+      `${year} ${scopeText} matchups loaded (${allGames.length} records, including ${byes} byes), but dates, times, and fields are still TBD. Live data checked: ${liveCheckedTimestamp()}.`,
+      "notice"
+    );
+    return;
+  }
+
+  const historical =
+    Number(year) < DEFAULT_SEASON_YEAR
+      ? " Historical data is shown for reference."
+      : "";
+
+  const scheduledDetails = Math.min(dated, timed, fields);
+  const remaining = Math.max(0, allGames.length - scheduledDetails);
+
+  const remainingNote =
+    remaining > 0
+      ? ` ${remaining} records are byes or games still awaiting final date/time/location details from BGYFL.`
+      : "";
+
+  setStatus(
+    `${year} ${scopeText} schedule loaded successfully: ${allGames.length} records. ${scheduledDetails} games currently have confirmed date/time/location details.${remainingNote} Live data checked: ${liveCheckedTimestamp()}.${historical}`,
+    "success"
+  );
+}
+    
     async function loadData({ restoreState = null } = {}) {
       if (loading) return;
       loading = true;
